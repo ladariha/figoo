@@ -1,0 +1,1997 @@
+/*
+ * FigooView.java
+ */
+package figoo;
+
+import com.google.gdata.client.photos.PicasawebService;
+import com.google.gdata.util.AuthenticationException;
+import com.google.gdata.util.ServiceException;
+import figoo.classes.AlbumInfo;
+import figoo.classes.PhotoInfo;
+import figoo.classes.Session;
+import figoo.google.FigooPicasaClient;
+import figoo.guiClasses.ListRenderer;
+import java.awt.FlowLayout;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import org.jdesktop.application.Action;
+import org.jdesktop.application.SingleFrameApplication;
+import org.jdesktop.application.FrameView;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListModel;
+import javax.swing.filechooser.FileSystemView;
+import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import javax.swing.ComboBoxModel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+
+/**
+ * The application's main frame.
+ */
+public class FigooView extends FrameView {
+
+    /**
+     *
+     * @param app
+     */
+    public FigooView(SingleFrameApplication app) {
+        super(app);
+        initComponents();
+        //googleInit();
+        icons = new HashMap<String, Icon>();
+        desktop = null;
+        if (Desktop.isDesktopSupported()) {
+            desktop = Desktop.getDesktop();
+        }
+
+        getFrame().setFocusable(true);
+        getFrame().addKeyListener(new MyKeyListener());
+
+        mainPanel.addKeyListener(new MyKeyListener());
+        menuBar.addKeyListener(new MyKeyListener());
+        fileChooser = new JFileChooser();
+        session = new Session();
+        String path = System.getProperty("user.home");
+
+        listDirectory(path, jList1, 1);
+        listDirectory(path, jList2, 0);
+        findRoots(path, 1);
+        findRoots(path, 0);
+    }
+
+    private void listDirectory(String path, JList list, int left) {
+        list = new JList();
+
+        String field = "";
+        if (rootBox != null) {
+            field = (String) rootBox2.getModel().getSelectedItem();
+            if (field.equalsIgnoreCase("/picasa")) {
+                list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            }
+        }
+        list.setName(left + "");
+
+        list.addKeyListener(new MyKeyListener());
+        if (left == 1) {
+            jScrollPane1.setViewportView(list);
+        } else {
+            jScrollPane2.setViewportView(list);
+        }
+        DefaultListModel listModel = new DefaultListModel();
+        list.setCellRenderer(new ListRenderer());
+        File folder = new File(path);
+        if (left == 1) {
+            if (path.length() > 60) {
+                int diff = path.length() - 60;
+                path = "..." + path.substring(diff);
+                jLabel1.setText(path);
+            } else {
+                jLabel1.setText(path);
+            }
+        } else {
+            jButton11.setEnabled(true);
+            if (path.length() > 60) {
+                int diff = path.length() - 60;
+                path = "..." + path.substring(diff);
+                jLabel2.setText(path);
+            } else {
+                jLabel2.setText(path);
+            }
+        }
+
+        if (jLabel1.getText().equalsIgnoreCase(jLabel2.getText())) {
+            jButton6.setEnabled(false);
+        } else {
+            jButton6.setEnabled(true);
+        }
+
+        String parent = folder.getParent();
+        final JList list2 = list;
+
+        File[] files = folder.listFiles();
+        if (files != null) {
+            Arrays.sort(files);
+            Vector pole = new Vector();
+            Vector pole2 = new Vector();
+
+            JPanel p = new JPanel();
+            p.setName(parent);
+            p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+            JLabel name = new JLabel("..");
+            p.add(name);
+            pole2.add(p);
+            JLabel icon;
+            JPopupMenu popup;
+            JMenuItem menuItem;
+            popup = new JPopupMenu();
+            menuItem = new JMenuItem("Open");
+            Font font = menuItem.getFont();
+            menuItem.setFont(new Font("Tahoma", Font.BOLD, 11));
+            menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    openFile(e, list2);
+                }
+            });
+            popup.add(menuItem);
+
+            menuItem = new JMenuItem("Rename");
+            menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    renameDialog();
+                }
+            });
+            popup.add(menuItem);
+
+            menuItem = new JMenuItem("Delete");
+            menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    removeDialog();
+                }
+            });
+            popup.add(menuItem);
+
+            menuItem = new JMenuItem("Copy");
+            menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    copyDialog();
+                }
+            });
+            popup.add(menuItem);
+
+            menuItem = new JMenuItem("Move");
+            menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    moveDialog();
+                }
+            });
+            popup.add(menuItem);
+            popup.addSeparator();
+            menuItem = new JMenuItem("Properties");
+            menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    propertiesDialog();
+                }
+            });
+            popup.add(menuItem);
+
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isFile() && !files[i].isHidden()) {
+                    p = new JPanel();
+                    p.setName(files[i].getAbsolutePath());
+                    p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                    name = new JLabel(files[i].getName());
+                    pole.add(p);
+
+                    Icon image = getIcon(files[i]);
+                    icon = new JLabel(image);
+                    p.add(icon);
+                    p.add(name);
+                } else if (files[i].isDirectory() && !files[i].isHidden()) {
+                    p = new JPanel();
+                    p.setName(files[i].getAbsolutePath());
+                    p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                    name = new JLabel(files[i].getName());
+                    Icon image = getIcon(files[i]);
+                    icon = new JLabel(image);
+                    p.add(icon);
+                    p.add(name);
+                    pole2.add(p);
+                }
+            }
+
+            final JPopupMenu popup2 = popup;
+
+            list.addMouseListener(new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent me) {
+                    // if right mouse button clicked (or me.isPopupTrigger())
+                    if (SwingUtilities.isRightMouseButton(me)
+                            && !list2.isSelectionEmpty()
+                            && list2.locationToIndex(me.getPoint())
+                            == list2.getSelectedIndex()) {
+                        popup2.show(list2, me.getX(), me.getY());
+                    }
+                }
+            });
+            pole2.addAll(pole);
+            list.setListData(pole2);
+
+            list.addMouseListener(new DirectoryActionJList(list, left));
+            list.addKeyListener(null);
+        }
+    }
+
+    private void openFile(ActionEvent e, JList list) {
+        int[] indices = list.getSelectedIndices();
+        if (indices.length == 1) {
+            ListModel lm = list.getModel();
+            JPanel dir = (JPanel) lm.getElementAt(indices[0]);
+
+            list.ensureIndexIsVisible(indices[0]);
+            File f = new File(dir.getName());
+            if (f.isDirectory()) {
+                if (list.getName().equalsIgnoreCase("1")) {
+                    listDirectory(dir.getName(), list, 1);
+                } else {
+                    listDirectory(dir.getName(), list, 0);
+                }
+            } else if (f.isFile() && desktop != null) {
+                try {
+                    desktop.open(f);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Open file error", ex.getMessage());
+                    ed.setVisible(true);
+                }
+            }
+        } else {
+            ListModel lm = list.getModel();
+            for (int i = 0; i < indices.length; i++) {
+                JPanel dir = (JPanel) lm.getElementAt(indices[i]);
+                list.ensureIndexIsVisible(indices[i]);
+                File f = new File(dir.getName());
+                if (f.isFile() && desktop != null) {
+                    try {
+                        //desktop.edit(f);
+                        desktop.open(f);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Open file error", ex.getMessage());
+                        ed.setVisible(true);
+                    }
+                }
+            }
+        }
+    }
+
+    private void findRoots(String path, int left) {
+        File[] f = File.listRoots();
+        String[] roots = new String[f.length];
+        String t;
+        int index = 0;
+        session.setRootsL(new String[roots.length]);
+        session.setRootsR(new String[roots.length]);
+        for (int i = 0; i < f.length; i++) {
+            t = f[i].getAbsolutePath();
+            roots[i] = t;
+        }
+
+        Arrays.sort(roots);
+
+        for (int i = 0; i < f.length; i++) {
+            if (path.startsWith(roots[i])) {
+                index = i;
+            }
+        }
+        if (left == 1) {
+            jPanel11.removeAll();
+            ArrayList al = new ArrayList();
+            for (int i = 0; i < roots.length; i++) {
+                al.add(roots[i]);
+            }
+
+            rootBox = new JComboBox(al.toArray());
+
+            rootBox.setSelectedIndex(index);
+            rootBox.setName("1");//left one
+            rootBox.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    changeDrive(evt);
+                }
+            });
+
+            jPanel11.add(rootBox);
+        }
+        // right
+        if (left == 0) {
+            jPanel18.removeAll();
+            ArrayList al = new ArrayList();
+            for (int i = 0; i < roots.length; i++) {
+                al.add(roots[i]);
+            }
+            if (logPicasa) {
+                al.add("Picasa");
+            }
+            if (logGdocs) {
+                al.add("GDocs");
+            }
+
+            rootBox2 = new JComboBox(al.toArray());
+            rootBox2.setName("0");//right one
+            rootBox2.setSelectedIndex(index);
+            rootBox2.addActionListener(new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    changeDrive(evt);
+                }
+            });
+
+            jPanel18.add(rootBox2);
+        }
+    }
+
+    private void changeDrive(ActionEvent evt) {
+
+        JComboBox cb = (JComboBox) evt.getSource();
+        if (cb.getName().equals("1")) {
+            String field = (String) cb.getModel().getSelectedItem();
+            for (int i = 0; i < cb.getItemCount(); i++) {
+                if (jLabel1.getText().startsWith((String) cb.getItemAt(i))) {
+                    session.setRootL(jLabel1.getText(), i);
+                }
+            }
+
+            if (session.getRootL(cb.getSelectedIndex()) != null && session.getRootL(cb.getSelectedIndex()).length() > 1) {
+                listDirectory(session.getRootL(cb.getSelectedIndex()), jList1, 1);
+            } else {
+                listDirectory((String) cb.getSelectedItem(), jList1, 1);
+            }
+        } else {
+
+            for (int i = 0; i < cb.getItemCount(); i++) {
+                if (!jLabel2.getText().equalsIgnoreCase("/picasa") &&jLabel2.getText().startsWith((String) cb.getItemAt(i))) {
+                    session.setRootR(jLabel2.getText(), i);
+                }
+            }
+            String field = (String) cb.getModel().getSelectedItem();
+
+            if (field.equalsIgnoreCase("/picasa")) {
+                listDirectory(jLabel1.getText(), jList1, 1);
+                listPicasa(jList2, 0);
+            } else if (field.equalsIgnoreCase("GDocs")) {
+            } else {
+                System.out.println("IFF");
+                if (session.getRootR(cb.getSelectedIndex()) != null && session.getRootR(cb.getSelectedIndex()).length() > 1) {
+                    listDirectory(session.getRootR(cb.getSelectedIndex()), jList2, 0);
+                } else {
+                    listDirectory((String) cb.getSelectedItem(), jList2, 0);
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    @Action
+    public void showAboutBox() {
+        if (aboutBox == null) {
+            JFrame mainFrame = FigooApp.getApplication().getMainFrame();
+            aboutBox = new FigooAboutBox(mainFrame);
+            aboutBox.setLocationRelativeTo(mainFrame);
+        }
+        FigooApp.getApplication().show(aboutBox);
+    }
+
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        mainPanel = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
+        jButton6 = new javax.swing.JButton();
+        jButton7 = new javax.swing.JButton();
+        jButton8 = new javax.swing.JButton();
+        jButton14 = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel8 = new javax.swing.JPanel();
+        jButton9 = new javax.swing.JButton();
+        jButton10 = new javax.swing.JButton();
+        jButton11 = new javax.swing.JButton();
+        jButton12 = new javax.swing.JButton();
+        jButton13 = new javax.swing.JButton();
+        jPanel7 = new javax.swing.JPanel();
+        jPanel9 = new javax.swing.JPanel();
+        jPanel17 = new javax.swing.JPanel();
+        jPanel13 = new javax.swing.JPanel();
+        jPanel12 = new javax.swing.JPanel();
+        jPanel11 = new javax.swing.JPanel();
+        jPanel10 = new javax.swing.JPanel();
+        jPanel14 = new javax.swing.JPanel();
+        jPanel15 = new javax.swing.JPanel();
+        jPanel16 = new javax.swing.JPanel();
+        jPanel18 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel6 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
+        jPanel5 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jList2 = new javax.swing.JList();
+        menuBar = new javax.swing.JMenuBar();
+        javax.swing.JMenu fileMenu = new javax.swing.JMenu();
+        javax.swing.JMenuItem exitMenuItem = new javax.swing.JMenuItem();
+        javax.swing.JMenu helpMenu = new javax.swing.JMenu();
+        javax.swing.JMenuItem aboutMenuItem = new javax.swing.JMenuItem();
+        statusPanel = new javax.swing.JPanel();
+        javax.swing.JSeparator statusPanelSeparator = new javax.swing.JSeparator();
+
+        mainPanel.setName("mainPanel"); // NOI18N
+
+        jPanel1.setName("jPanel1"); // NOI18N
+        jPanel1.setLayout(new java.awt.BorderLayout());
+
+        jPanel4.setName("jPanel4"); // NOI18N
+        jPanel4.setPreferredSize(new java.awt.Dimension(801, 50));
+
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(FigooView.class);
+        jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
+        jButton1.setMargin(new java.awt.Insets(2, 5, 2, 5));
+        jButton1.setName("jButton1"); // NOI18N
+        jButton1.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileInfo(evt);
+            }
+        });
+
+        jButton2.setText(resourceMap.getString("jButton2.text")); // NOI18N
+        jButton2.setMargin(new java.awt.Insets(2, 5, 2, 5));
+        jButton2.setName("jButton2"); // NOI18N
+        jButton2.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                renameButton(evt);
+            }
+        });
+
+        jButton3.setText(resourceMap.getString("jButton3.text")); // NOI18N
+        jButton3.setMargin(new java.awt.Insets(2, 5, 2, 5));
+        jButton3.setName("jButton3"); // NOI18N
+        jButton3.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                makeDirectory(evt);
+            }
+        });
+
+        jButton4.setText(resourceMap.getString("jButton4.text")); // NOI18N
+        jButton4.setEnabled(false);
+        jButton4.setMargin(new java.awt.Insets(2, 5, 2, 5));
+        jButton4.setName("jButton4"); // NOI18N
+        jButton4.setPreferredSize(new java.awt.Dimension(100, 23));
+
+        jButton5.setText(resourceMap.getString("jButton5.text")); // NOI18N
+        jButton5.setMargin(new java.awt.Insets(2, 5, 2, 5));
+        jButton5.setName("jButton5"); // NOI18N
+        jButton5.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyFiles(evt);
+            }
+        });
+
+        jButton6.setText(resourceMap.getString("jButton6.text")); // NOI18N
+        jButton6.setName("jButton6"); // NOI18N
+        jButton6.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                moveFiles(evt);
+            }
+        });
+
+        jButton7.setText(resourceMap.getString("jButton7.text")); // NOI18N
+        jButton7.setName("jButton7"); // NOI18N
+        jButton7.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteFile(evt);
+            }
+        });
+
+        jButton8.setText(resourceMap.getString("jButton8.text")); // NOI18N
+        jButton8.setEnabled(false);
+        jButton8.setName("jButton8"); // NOI18N
+        jButton8.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadDialog(evt);
+            }
+        });
+
+        jButton14.setText(resourceMap.getString("jButton14.text")); // NOI18N
+        jButton14.setName("jButton14"); // NOI18N
+        jButton14.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                downloadFile(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel4Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButton1, jButton2, jButton5});
+
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(16, Short.MAX_VALUE))
+        );
+
+        jPanel1.add(jPanel4, java.awt.BorderLayout.PAGE_END);
+
+        jPanel2.setName("jPanel2"); // NOI18N
+        jPanel2.setPreferredSize(new java.awt.Dimension(801, 80));
+        jPanel2.setLayout(new java.awt.GridLayout(2, 0));
+
+        jPanel8.setName("jPanel8"); // NOI18N
+        jPanel8.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 5));
+
+        jButton9.setFont(resourceMap.getFont("jButton9.font")); // NOI18N
+        jButton9.setIcon(resourceMap.getIcon("jButton9.icon")); // NOI18N
+        jButton9.setText(resourceMap.getString("jButton9.text")); // NOI18N
+        jButton9.setAlignmentY(0.0F);
+        jButton9.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jButton9.setIconTextGap(1);
+        jButton9.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        jButton9.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton9.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton9.setName("jButton9"); // NOI18N
+        jButton9.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton9.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        jButton9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshView(evt);
+            }
+        });
+        jPanel8.add(jButton9);
+
+        jButton10.setIcon(resourceMap.getIcon("jButton10.icon")); // NOI18N
+        jButton10.setText(resourceMap.getString("jButton10.text")); // NOI18N
+        jButton10.setToolTipText(resourceMap.getString("jButton10.toolTipText")); // NOI18N
+        jButton10.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton10.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton10.setName("jButton10"); // NOI18N
+        jButton10.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                duplicateLeftView(evt);
+            }
+        });
+        jPanel8.add(jButton10);
+
+        jButton11.setIcon(resourceMap.getIcon("jButton11.icon")); // NOI18N
+        jButton11.setToolTipText(resourceMap.getString("jButton11.toolTipText")); // NOI18N
+        jButton11.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton11.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton11.setName("jButton11"); // NOI18N
+        jButton11.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                duplicateRightView(evt);
+            }
+        });
+        jPanel8.add(jButton11);
+
+        jButton12.setBackground(resourceMap.getColor("jButton12.background")); // NOI18N
+        jButton12.setIcon(resourceMap.getIcon("jButton12.icon")); // NOI18N
+        jButton12.setToolTipText(resourceMap.getString("jButton12.toolTipText")); // NOI18N
+        jButton12.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton12.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton12.setName("jButton12"); // NOI18N
+        jButton12.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton12.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loginPicasaDialog(evt);
+            }
+        });
+        jPanel8.add(jButton12);
+
+        jButton13.setBackground(resourceMap.getColor("jButton13.background")); // NOI18N
+        jButton13.setIcon(resourceMap.getIcon("jButton13.icon")); // NOI18N
+        jButton13.setToolTipText(resourceMap.getString("jButton13.toolTipText")); // NOI18N
+        jButton13.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton13.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton13.setName("jButton13"); // NOI18N
+        jButton13.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton13.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logoutPicasa(evt);
+            }
+        });
+        jPanel8.add(jButton13);
+
+        jPanel2.add(jPanel8);
+
+        jPanel7.setName("jPanel7"); // NOI18N
+        jPanel7.setPreferredSize(new java.awt.Dimension(801, 20));
+        jPanel7.setLayout(new java.awt.GridLayout(2, 2));
+
+        jPanel9.setName("jPanel9"); // NOI18N
+        jPanel9.setLayout(new java.awt.GridLayout(1, 4));
+
+        jPanel17.setName("jPanel17"); // NOI18N
+
+        javax.swing.GroupLayout jPanel17Layout = new javax.swing.GroupLayout(jPanel17);
+        jPanel17.setLayout(jPanel17Layout);
+        jPanel17Layout.setHorizontalGroup(
+            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 121, Short.MAX_VALUE)
+        );
+        jPanel17Layout.setVerticalGroup(
+            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        jPanel9.add(jPanel17);
+
+        jPanel13.setName("jPanel13"); // NOI18N
+
+        javax.swing.GroupLayout jPanel13Layout = new javax.swing.GroupLayout(jPanel13);
+        jPanel13.setLayout(jPanel13Layout);
+        jPanel13Layout.setHorizontalGroup(
+            jPanel13Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 121, Short.MAX_VALUE)
+        );
+        jPanel13Layout.setVerticalGroup(
+            jPanel13Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        jPanel9.add(jPanel13);
+
+        jPanel12.setName("jPanel12"); // NOI18N
+
+        javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
+        jPanel12.setLayout(jPanel12Layout);
+        jPanel12Layout.setHorizontalGroup(
+            jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 121, Short.MAX_VALUE)
+        );
+        jPanel12Layout.setVerticalGroup(
+            jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        jPanel9.add(jPanel12);
+
+        jPanel11.setName("jPanel11"); // NOI18N
+        jPanel11.setLayout(new java.awt.GridLayout(1, 1));
+        jPanel9.add(jPanel11);
+
+        jPanel7.add(jPanel9);
+
+        jPanel10.setName("jPanel10"); // NOI18N
+        jPanel10.setLayout(new java.awt.GridLayout(1, 4));
+
+        jPanel14.setName("jPanel14"); // NOI18N
+
+        javax.swing.GroupLayout jPanel14Layout = new javax.swing.GroupLayout(jPanel14);
+        jPanel14.setLayout(jPanel14Layout);
+        jPanel14Layout.setHorizontalGroup(
+            jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 121, Short.MAX_VALUE)
+        );
+        jPanel14Layout.setVerticalGroup(
+            jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        jPanel10.add(jPanel14);
+
+        jPanel15.setName("jPanel15"); // NOI18N
+
+        javax.swing.GroupLayout jPanel15Layout = new javax.swing.GroupLayout(jPanel15);
+        jPanel15.setLayout(jPanel15Layout);
+        jPanel15Layout.setHorizontalGroup(
+            jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 121, Short.MAX_VALUE)
+        );
+        jPanel15Layout.setVerticalGroup(
+            jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        jPanel10.add(jPanel15);
+
+        jPanel16.setName("jPanel16"); // NOI18N
+
+        javax.swing.GroupLayout jPanel16Layout = new javax.swing.GroupLayout(jPanel16);
+        jPanel16.setLayout(jPanel16Layout);
+        jPanel16Layout.setHorizontalGroup(
+            jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 121, Short.MAX_VALUE)
+        );
+        jPanel16Layout.setVerticalGroup(
+            jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        jPanel10.add(jPanel16);
+
+        jPanel18.setName("jPanel18"); // NOI18N
+        jPanel18.setLayout(new java.awt.GridLayout(1, 1));
+        jPanel10.add(jPanel18);
+
+        jPanel7.add(jPanel10);
+
+        jLabel1.setText(resourceMap.getString("jLabel1.text")); // NOI18N
+        jLabel1.setName("jLabel1"); // NOI18N
+        jPanel7.add(jLabel1);
+
+        jLabel2.setText(resourceMap.getString("jLabel2.text")); // NOI18N
+        jLabel2.setName("jLabel2"); // NOI18N
+        jPanel7.add(jLabel2);
+
+        jPanel2.add(jPanel7);
+
+        jPanel1.add(jPanel2, java.awt.BorderLayout.PAGE_START);
+
+        jPanel3.setName("jPanel3"); // NOI18N
+        jPanel3.setLayout(new java.awt.GridLayout(1, 2));
+
+        jPanel6.setName("jPanel6"); // NOI18N
+
+        jScrollPane1.setName("jScrollPane1"); // NOI18N
+
+        jList1.setName("jList1"); // NOI18N
+        jScrollPane1.setViewportView(jList1);
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 484, Short.MAX_VALUE)
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
+        );
+
+        jPanel3.add(jPanel6);
+
+        jPanel5.setName("jPanel5"); // NOI18N
+
+        jScrollPane2.setName("jScrollPane2"); // NOI18N
+
+        jList2.setName("jList2"); // NOI18N
+        jScrollPane2.setViewportView(jList2);
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 484, Short.MAX_VALUE)
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
+        );
+
+        jPanel3.add(jPanel5);
+
+        jPanel1.add(jPanel3, java.awt.BorderLayout.CENTER);
+
+        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
+        mainPanel.setLayout(mainPanelLayout);
+        mainPanelLayout.setHorizontalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 968, Short.MAX_VALUE)
+        );
+        mainPanelLayout.setVerticalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        menuBar.setName("menuBar"); // NOI18N
+
+        fileMenu.setText(resourceMap.getString("fileMenu.text")); // NOI18N
+        fileMenu.setName("fileMenu"); // NOI18N
+
+        javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getActionMap(FigooView.class, this);
+        exitMenuItem.setAction(actionMap.get("quit")); // NOI18N
+        exitMenuItem.setName("exitMenuItem"); // NOI18N
+        fileMenu.add(exitMenuItem);
+
+        menuBar.add(fileMenu);
+
+        helpMenu.setText(resourceMap.getString("helpMenu.text")); // NOI18N
+        helpMenu.setName("helpMenu"); // NOI18N
+
+        aboutMenuItem.setAction(actionMap.get("showAboutBox")); // NOI18N
+        aboutMenuItem.setName("aboutMenuItem"); // NOI18N
+        helpMenu.add(aboutMenuItem);
+
+        menuBar.add(helpMenu);
+
+        statusPanel.setName("statusPanel"); // NOI18N
+
+        statusPanelSeparator.setName("statusPanelSeparator"); // NOI18N
+
+        javax.swing.GroupLayout statusPanelLayout = new javax.swing.GroupLayout(statusPanel);
+        statusPanel.setLayout(statusPanelLayout);
+        statusPanelLayout.setHorizontalGroup(
+            statusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(statusPanelSeparator, javax.swing.GroupLayout.DEFAULT_SIZE, 968, Short.MAX_VALUE)
+        );
+        statusPanelLayout.setVerticalGroup(
+            statusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(statusPanelLayout.createSequentialGroup()
+                .addComponent(statusPanelSeparator, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(23, Short.MAX_VALUE))
+        );
+
+        setComponent(mainPanel);
+        setMenuBar(menuBar);
+        setStatusBar(statusPanel);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void refreshView(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshView
+        refresh();
+    }//GEN-LAST:event_refreshView
+
+    private void renameButton(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameButton
+        renameDialog();
+    }//GEN-LAST:event_renameButton
+
+    private void makeDirectory(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeDirectory
+        makeDirDialog();        // TODO add your handling code here:
+    }//GEN-LAST:event_makeDirectory
+
+    private void copyFiles(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyFiles
+        copyDialog();
+    }//GEN-LAST:event_copyFiles
+
+    private void moveFiles(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_moveFiles
+        moveDialog();
+    }//GEN-LAST:event_moveFiles
+
+    private void deleteFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteFile
+        removeDialog();        // TODO add your handling code here:
+    }//GEN-LAST:event_deleteFile
+
+    private void fileInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileInfo
+        propertiesDialog();
+    }//GEN-LAST:event_fileInfo
+
+    private void loginPicasaDialog(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginPicasaDialog
+        if (!logPicasa) {
+            try {
+                PicasaLogin pl = new PicasaLogin(getFrame(), true, this);
+                pl.setVisible(true);
+            } catch (Exception ex) {
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Picasa dialog", ex.getMessage());
+                ed.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_loginPicasaDialog
+
+    /**
+     *
+     * @param u
+     * @param p
+     */
+    public void loginPicasa(String u, String p) {
+        try {
+            this.username = u;
+            picasa = FigooPicasaClient.logPicasa(u, p);
+            this.logPicasa = true;
+            ComboBoxModel cm = rootBox2.getModel();
+            int index = cm.getSize();
+            rootBox2.addItem(new String("/picasa"));
+            rootBox2.setSelectedIndex(index);
+            jButton8.setEnabled(true);
+            listPicasa(jList2, 0);
+        } catch (AuthenticationException ex) {
+            this.logPicasa=false;
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Picasa Login", ex.getMessage());
+            ex.printStackTrace();
+            ed.setVisible(true);
+        }
+    }
+
+    private void duplicateLeftView(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_duplicateLeftView
+        listDirectory(jLabel1.getText(), jList2, 0);
+    }//GEN-LAST:event_duplicateLeftView
+
+    private void duplicateRightView(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_duplicateRightView
+        listDirectory(jLabel2.getText(), jList1, 1);
+    }//GEN-LAST:event_duplicateRightView
+
+    private void logoutPicasa(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutPicasa
+        logPicasa = false;
+        picasa = null;
+        jButton8.setEnabled(false);
+        duplicateLeftView(evt);
+        refresh();
+    }//GEN-LAST:event_logoutPicasa
+
+    private void downloadFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadFile
+        if (active != null && active.getName().equals("0") && jLabel2.getText().startsWith("/picasa")) {
+            downloadPicasa(active);
+        }
+    }//GEN-LAST:event_downloadFile
+
+    private void uploadDialog(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDialog
+        // TODO add your handling code here:
+        showUploadDialog();
+    }//GEN-LAST:event_uploadDialog
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton10;
+    private javax.swing.JButton jButton11;
+    private javax.swing.JButton jButton12;
+    private javax.swing.JButton jButton13;
+    private javax.swing.JButton jButton14;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
+    private javax.swing.JButton jButton7;
+    private javax.swing.JButton jButton8;
+    private javax.swing.JButton jButton9;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JList jList1;
+    private javax.swing.JList jList2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel11;
+    private javax.swing.JPanel jPanel12;
+    private javax.swing.JPanel jPanel13;
+    private javax.swing.JPanel jPanel14;
+    private javax.swing.JPanel jPanel15;
+    private javax.swing.JPanel jPanel16;
+    private javax.swing.JPanel jPanel17;
+    private javax.swing.JPanel jPanel18;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JPanel mainPanel;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JPanel statusPanel;
+    // End of variables declaration//GEN-END:variables
+    private JDialog aboutBox;
+    private JList active;
+    /**
+     *
+     */
+    public Session session;
+    private JFileChooser fileChooser;
+    private Map<String, Icon> icons = null;
+    private Desktop desktop;
+    private JComboBox rootBox2;
+    private JComboBox rootBox;
+    /**
+     *
+     */
+    public boolean cont = false;
+    private String username;
+    //private String pass;
+    private boolean logPicasa = false;
+    private boolean logGdocs = false;
+    private PicasawebService picasa;
+
+    /**
+     *
+     * @param file
+     * @return
+     */
+    public Icon getIcon(File file) {
+        try {
+            String type = fileChooser.getTypeDescription(file);
+
+            if (icons.containsKey(type)) {
+                return icons.get(type);
+            } else {
+            }
+
+            File tmp = File.createTempFile("icon", type);
+            FileSystemView view = FileSystemView.getFileSystemView();
+            Icon icon = view.getSystemIcon(file);
+            tmp.delete();
+            icons.put(type, icon);
+            return icon;
+        } catch (IOException ex) {
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Icon error", ex.getMessage());
+            ed.setVisible(true);
+        }
+        return null;
+    }
+
+    private void renameDialog() {
+        if (active.getName().equals("0") && jLabel2.getText().startsWith("/picasa")) {
+            if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+                Object[] f = active.getSelectedValues();
+                int[] indices = active.getSelectedIndices();
+                if (indices.length > 0) {
+                    JPanel p;
+                    for (int i = 0; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String id = p.getName();
+                            RenamePicasaDialog rd = new RenamePicasaDialog(this, this.getFrame(), true, id, picasa, username);
+                            rd.setVisible(true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "RenameDialog error", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+        } else {
+            try {
+                Object[] f = active.getSelectedValues();
+                int[] indices = active.getSelectedIndices();
+                if (indices.length > 0) {
+                    JPanel p;
+                    int i = 0;
+                    if (indices[0] == 0) {
+                        for (i = 1; i < f.length; i++) {
+                            try {
+                                p = (JPanel) f[i];
+                                String file = p.getName();
+                                RenameDialog rd = new RenameDialog(this, this.getFrame(), true, file);
+                                rd.setVisible(true);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "RenameDialog error", e.getMessage());
+                                ed.setVisible(true);
+                            }
+                        }
+                    } else {
+                        for (i = 0; i < f.length; i++) {
+                            try {
+                                p = (JPanel) f[i];
+                                String file = p.getName();
+                                RenameDialog rd = new RenameDialog(this, this.getFrame(), true, file);
+                                rd.setVisible(true);
+                            } catch (Exception e) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error rename", e.getMessage());
+                                ed.setVisible(true);
+                            }
+                        }
+                    }
+                }
+            } catch (java.lang.NullPointerException n) {
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error rename", n.getMessage());
+                ed.setVisible(true);
+            }
+        }
+    }
+
+    private void copyDialog() {
+        if (!jLabel2.getText().startsWith("/picasa")) {
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+                JPanel p;
+                int i = 0;
+                if (indices[0] == 0) {
+                    for (i = 1; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            String from = "";
+                            String to = "";
+                            if (active.getName().equalsIgnoreCase("1")) {
+                                from = jLabel1.getText();
+                                to = jLabel2.getText();
+                            } else {
+                                to = jLabel1.getText();
+                                from = jLabel2.getText();
+                            }
+                            try {
+                                CopyFileDialog cd = new CopyFileDialog(this, this.getFrame(), true, to, file);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Copy dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Copy dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                } else {
+                    for (i = 0; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            String from = "";
+                            String to = "";
+                            if (active.getName().equalsIgnoreCase("1")) {
+                                from = jLabel1.getText();
+                                to = jLabel2.getText();
+                            } else {
+                                to = jLabel1.getText();
+                                from = jLabel2.getText();
+                            }
+                            try {
+                                CopyFileDialog cd = new CopyFileDialog(this, this.getFrame(), true, to, file);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Copy dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Copy dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void moveDialog() {
+        if (!jLabel2.getText().startsWith("/picasa")) {
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+                JPanel p;
+                int i = 0;
+                if (indices[0] == 0) {
+                    for (i = 1; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            String from = "";
+                            String to = "";
+                            if (active.getName().equalsIgnoreCase("1")) {
+                                from = jLabel1.getText();
+                                to = jLabel2.getText();
+                            } else {
+                                to = jLabel1.getText();
+                                from = jLabel2.getText();
+                            }
+                            try {
+                                MoveFileDialog cd = new MoveFileDialog(this, this.getFrame(), true, to, file);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Move dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Move dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                } else {
+                    for (i = 0; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            String from = "";
+                            String to = "";
+                            if (active.getName().equalsIgnoreCase("1")) {
+                                from = jLabel1.getText();
+                                to = jLabel2.getText();
+                            } else {
+                                to = jLabel1.getText();
+                                from = jLabel2.getText();
+                            }
+                            try {
+                                MoveFileDialog cd = new MoveFileDialog(this, this.getFrame(), true, to, file);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Move dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Move dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void makeDirDialog() {
+        if (active.getName().equalsIgnoreCase("1")) {
+            MakeDirDialog md = new MakeDirDialog(this, this.getFrame(), true, jLabel1.getText());
+            md.setVisible(true);
+        } else {
+            if (!jLabel2.getText().startsWith("/picasa")) {
+                MakeDirDialog md = new MakeDirDialog(this, this.getFrame(), true, jLabel2.getText());
+                md.setVisible(true);
+            }
+        }
+    }
+
+    private void showUploadDialog() {
+        if (active != null & active.getName().equalsIgnoreCase("1") && jLabel2.getText().startsWith("/picasa")) {
+            int index = (active.getSelectedIndex());
+            JPanel p = (JPanel) active.getSelectedValue();
+            UploadPicasaDialog d = new UploadPicasaDialog(this.getFrame(), true, picasa, username, p.getName(), this);
+            d.setVisible(true);
+        }
+    }
+
+    private void removeDialog() {
+        YesNoDialog y = new YesNoDialog(this.getFrame(), true, this);
+        y.setVisible(true);
+        if (cont) {
+            cont = false;
+            if (active.getName().equals("0") && jLabel2.getText().startsWith("/picasa")) {
+                if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+                    Object[] f = active.getSelectedValues();
+                    int[] indices = active.getSelectedIndices();
+                    if (indices.length > 0) {
+                        JPanel p;
+                        for (int i = 0; i < f.length; i++) {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            RemovePicasaDialog cd = new RemovePicasaDialog(this, this.getFrame(), true, file, true, username, picasa);
+                            cd.setVisible(true);
+                        }
+                    }
+                    refresh();
+                } else {
+                    Object[] f = active.getSelectedValues();
+                    int[] indices = active.getSelectedIndices();
+                    if (indices.length > 0) {
+
+                        RemovePicasaFileDialog cd = new RemovePicasaFileDialog(this, this.getFrame(), true, username, picasa, f);
+                        cd.setVisible(true);
+                    }
+                    refresh();
+                }
+            } else {
+                Object[] f = active.getSelectedValues();
+                int[] indices = active.getSelectedIndices();
+                if (indices.length > 0) {
+                    JPanel p;
+                    int i = 0;
+                    if (indices[0] == 0) {
+                        for (i = 1; i < f.length; i++) {
+                            try {
+                                p = (JPanel) f[i];
+                                String file = p.getName();
+                                try {
+                                    RemoveFileDialog cd = new RemoveFileDialog(this, this.getFrame(), true, file);
+                                    cd.setVisible(true);
+                                } catch (Exception n) {
+                                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Remove dialog", n.getMessage());
+                                    ed.setVisible(true);
+                                }
+                            } catch (Exception e) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Remove dialog", e.getMessage());
+                                ed.setVisible(true);
+                            }
+                        }
+                    } else {
+                        for (i = 0; i < f.length; i++) {
+                            try {
+                                p = (JPanel) f[i];
+                                String file = p.getName();
+                                try {
+                                    RemoveFileDialog cd = new RemoveFileDialog(this, this.getFrame(), true, file);
+                                    cd.setVisible(true);
+                                } catch (Exception n) {
+                                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Remove dialog", n.getMessage());
+                                    ed.setVisible(true);
+                                }
+                            } catch (Exception e) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Remove dialog", e.getMessage());
+                                ed.setVisible(true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void propertiesDialog() {
+        if (logPicasa && jLabel2.getText().startsWith("/picasa") && active.getName().equalsIgnoreCase("0")) {
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+                if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+                    for (int i = 0; i < f.length; i++) {
+
+                        String albumID = ((JPanel) f[i]).getName();
+                        try {
+                            AlbumInfo a = FigooPicasaClient.getAlbumInfo(albumID, username, picasa);
+                            AlbumInfoDialog ad = new AlbumInfoDialog(getFrame(), false, a);
+                            ad.setVisible(true);
+                        } catch (MalformedURLException ex) {
+                            ex.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "propertiesDialog error", ex.getMessage());
+                            ed.setVisible(true);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "propertiesDialog error", ex.getMessage());
+                            ed.setVisible(true);
+                        } catch (ServiceException ex) {
+                            ex.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "propertiesDialog error", ex.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < f.length; i++) {
+                        String albumID = ((JPanel) f[i]).getName();
+                        try {
+                            PhotoInfoDialog id = new PhotoInfoDialog(getFrame(), false, FigooPicasaClient.getPhotoInfo(albumID, picasa, username));
+                            id.setVisible(true);
+                        } catch (MalformedURLException ex) {
+                            ex.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "propertiesDialog error", ex.getMessage());
+                            ed.setVisible(true);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "propertiesDialog error", ex.getMessage());
+                            ed.setVisible(true);
+                        } catch (ServiceException ex) {
+                            ex.printStackTrace();
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "propertiesDialog error", ex.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+        } else {
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+                JPanel p;
+                int i = 0;
+                if (indices[0] == 0) {
+                    for (i = 1; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            try {
+                                PropertiesDialog cd = new PropertiesDialog(this.getFrame(), true, file, this);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                } else {
+                    for (i = 0; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            try {
+                                PropertiesDialog cd = new PropertiesDialog(this.getFrame(), true, file, this);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    public void refresh() {
+        listDirectory(jLabel1.getText(), jList1, 1);
+        if (!jLabel2.getText().startsWith("/picasa")) {
+            listDirectory(jLabel2.getText(), jList2, 0);
+            findRoots(jLabel2.getText(), 0);
+        } else {
+            listPicasa(jList2, 0);
+        }
+        findRoots(jLabel1.getText(), 1);
+    }
+
+
+
+    private void listPicasa(JList list, int left) {
+        try {
+            jButton11.setEnabled(false);
+            System.out.println("listing picasa");
+            ArrayList<String> titles = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, this.username);
+            ArrayList<String> ids = FigooPicasaClient.getAllPicasaAlbumID(picasa, this.username);
+            list = new JList();
+            list.setName(left + "");
+            list.addKeyListener(new MyKeyListener());
+
+            if (left == 1) {
+                jScrollPane1.setViewportView(list);
+            } else {
+                jScrollPane2.setViewportView(list);
+            }
+            DefaultListModel listModel = new DefaultListModel();
+            list.setCellRenderer(new ListRenderer());
+            jLabel2.setText("/picasa");
+            //list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            final JList list2 = list;
+
+            if (titles != null && ids != null) {
+
+                Vector pole = new Vector();
+                Vector pole2 = new Vector();
+
+                JLabel icon;
+                JPopupMenu popup;
+                JMenuItem menuItem;
+                popup = new JPopupMenu();
+                menuItem = new JMenuItem("Open");
+                Font font = menuItem.getFont();
+                menuItem.setFont(new Font("Tahoma", Font.BOLD, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        openAlbumPicasa(list2);
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Modify");
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        modifyPicasa();
+                    }
+                });
+                popup.add(menuItem);
+
+                menuItem = new JMenuItem("Download");
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        downloadPicasa(list2);
+                    }
+                });
+                popup.add(menuItem);
+
+                menuItem = new JMenuItem("Delete");
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        deletePicasa();
+                    }
+                });
+                popup.add(menuItem);
+                popup.addSeparator();
+                menuItem = new JMenuItem("Properties");
+
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        propertiesDialog();
+                    }
+                });
+                popup.add(menuItem);
+                JPanel p;
+                JLabel name;
+                File dir = new File(System.getProperty("user.home"));
+
+                for (int i = 0; i < titles.size(); i++) {
+                    p = new JPanel();
+                    p.setName(ids.get(i));
+                    p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                    name = new JLabel(titles.get(i));
+                    pole.add(p);
+
+                    Icon image = getIcon(dir);
+                    icon = new JLabel(image);
+                    p.add(icon);
+                    p.add(name);
+                }
+
+                final JPopupMenu popup2 = popup;
+
+                list.addMouseListener(new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent me) {
+                        // if right mouse button clicked (or me.isPopupTrigger())
+                        if (SwingUtilities.isRightMouseButton(me)
+                                && !list2.isSelectionEmpty()
+                                && list2.locationToIndex(me.getPoint())
+                                == list2.getSelectedIndex()) {
+                            popup2.show(list2, me.getX(), me.getY());
+                        }
+                    }
+                });
+                pole2.addAll(pole);
+                list.setListData(pole2);
+
+                list.addMouseListener(new DirectoryActionJList(list, left));
+                list.addKeyListener(null);
+            }
+        } catch (MalformedURLException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List picasa", ex.getMessage());
+            ed.setVisible(true);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List picasa", ex.getMessage());
+            ed.setVisible(true);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List picasa", ex.getMessage());
+            ed.setVisible(true);
+        }
+    }
+
+    private void deletePicasa() {
+        removeDialog();
+    }
+
+    private void downloadPicasa(JList lis) {
+        PicasaSizeDialog pd = new PicasaSizeDialog(getFrame(), true, lis, this);
+        pd.setVisible(true);
+    }
+
+    /**
+     *
+     * @param size
+     * @param lis
+     */
+    public void downloadPicasaStep2(String size, JList lis) {
+        int[] indices = lis.getSelectedIndices();
+        if (indices != null && indices.length > 0) {
+            ListModel lm = lis.getModel();
+
+            if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+                try {
+                    for (int i = 0; i < indices.length; i++) {
+                        JPanel dir = (JPanel) lm.getElementAt(indices[i]);
+                        lis.ensureIndexIsVisible(indices[i]);
+                        String p = dir.getName();
+                        System.out.println("LETS ROCK");
+                        DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, username, p, true);
+                        dp.setVisible(true);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "downloadPicasaStep2 error", ex.getMessage());
+                    ed.setVisible(true);
+                }
+            } else {
+                ArrayList<String> todo = new ArrayList<String>();
+                for (int i = 0; i < indices.length; i++) {
+                    JPanel dir = (JPanel) lm.getElementAt(indices[i]);
+                    lis.ensureIndexIsVisible(indices[i]);
+                    todo.add(dir.getName());
+                }
+                DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, username, todo, false);
+                dp.setVisible(true);
+            }
+        }
+    }
+
+    private void modifyPicasa() {
+        if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+                JPanel p;
+                int i = 0;
+                AlbumInfo al;
+                for (i = 0; i < f.length; i++) {
+                    try {
+                        p = (JPanel) f[i];
+                        String file = p.getName();
+                        try {
+                            al = FigooPicasaClient.getAlbumInfo(file, username, picasa);
+                            ModifyAlbumPicasaDialog cd = new ModifyAlbumPicasaDialog(this.getFrame(), false, al, picasa, username, this);
+                            cd.setVisible(true);
+                        } catch (Exception n) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
+                            ed.setVisible(true);
+                        }
+                    } catch (Exception e) {
+                        ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", e.getMessage());
+                        ed.setVisible(true);
+                    }
+                }
+            }
+        } else {
+            if (jLabel2.getText().startsWith("/picasa")) {
+
+                Object[] f = active.getSelectedValues();
+                int[] indices = active.getSelectedIndices();
+                if (indices.length > 0) {
+                    JPanel p;
+                    int i = 0;
+                    PhotoInfo al;
+                    for (i = 0; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            try {
+                                al = FigooPicasaClient.getPhotoInfo(file, picasa, username);
+                                ModifyPhotoPicasaDialog cd = new ModifyPhotoPicasaDialog(this.getFrame(), false, al, picasa, username, this);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void openTempPicasaFile(String idPicture) {
+        String size = "s640";
+        try {
+            FigooPicasaClient.downloadTempPhoto(desktop, size, idPicture, picasa, username);
+        } catch (MalformedURLException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "openTempPicasaFile error", ex.getMessage());
+            ed.setVisible(true);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "openTempPicasaFile error", ex.getMessage());
+            ed.setVisible(true);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "openTempPicasaFile error", ex.getMessage());
+            ed.setVisible(true);
+        }
+    }
+
+    private void openAlbumPicasa(JList lis) {
+
+        int[] indices = lis.getSelectedIndices();
+        if (indices.length == 1) {
+            ListModel lm = lis.getModel();
+            JPanel dir = (JPanel) lm.getElementAt(indices[0]);
+            lis.ensureIndexIsVisible(indices[0]);
+            String p = dir.getName();
+            if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+                openAlbum(p);
+            }
+        }
+    }
+
+    private void openAlbum(String id) {
+        try {
+            ArrayList<String> titles = FigooPicasaClient.listPicasaAlbumTitle(picasa, id, this.username);
+            ArrayList<String> ids = FigooPicasaClient.listPicasaAlbumID(picasa, id, this.username);
+            String albumName = FigooPicasaClient.getAlbumNameByID(picasa, id, this.username);
+
+            jButton11.setEnabled(false);
+            jList2 = new JList();
+            jList2.setName("0");
+            jList2.addKeyListener(new MyKeyListener());
+            jScrollPane2.setViewportView(jList2);
+            DefaultListModel listModel = new DefaultListModel();
+            jList2.setCellRenderer(new ListRenderer());
+            jLabel2.setText("/picasa/" + albumName);
+            final JList list2 = jList2;
+
+            if (titles != null && ids != null) {
+
+                Vector pole = new Vector();
+                Vector pole2 = new Vector();
+
+                JLabel icon;
+                JPopupMenu popup;
+                JMenuItem menuItem;
+                popup = new JPopupMenu();
+                menuItem = new JMenuItem("Open");
+                Font font = menuItem.getFont();
+                menuItem.setFont(new Font("Tahoma", Font.BOLD, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+
+                        ListModel lm = list2.getModel();
+                        JPanel dir = (JPanel) lm.getElementAt(list2.getSelectedIndex());
+                        openTempPicasaFile(dir.getName());
+                    }
+                });
+                popup.add(menuItem);
+
+                menuItem = new JMenuItem("Modify");
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        modifyPicasa();
+                    }
+                });
+                popup.add(menuItem);
+
+                menuItem = new JMenuItem("Download");
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        downloadPicasa(list2);
+                    }
+                });
+                popup.add(menuItem);
+
+                menuItem = new JMenuItem("Delete");
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        deletePicasa();
+                    }
+                });
+                popup.add(menuItem);
+                popup.addSeparator();
+                menuItem = new JMenuItem("Properties");
+
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        propertiesDialog();
+                    }
+                });
+                popup.add(menuItem);
+
+                JPanel p = new JPanel();
+                p.setName("..");
+                p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                JLabel name = new JLabel("..");
+                p.add(name);
+                pole2.add(p);
+                File tmp;
+                for (int i = 0; i < titles.size(); i++) {
+
+                    p = new JPanel();
+                    p.setName(ids.get(i));
+                    p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                    name = new JLabel(titles.get(i));
+                    pole.add(p);
+
+                    tmp = File.createTempFile("aaaa", titles.get(i).substring(titles.get(i).lastIndexOf(".")));
+
+                    Icon image = getIcon(tmp);
+                    icon = new JLabel(image);
+                    p.add(icon);
+                    p.add(name);
+                }
+
+                final JPopupMenu popup2 = popup;
+
+                jList2.addMouseListener(new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent me) {
+                        if (SwingUtilities.isRightMouseButton(me)
+                                && !list2.isSelectionEmpty()
+                                && list2.locationToIndex(me.getPoint())
+                                == list2.getSelectedIndex()) {
+                            popup2.show(list2, me.getX(), me.getY());
+                        }
+                    }
+                });
+                pole2.addAll(pole);
+                jList2.setListData(pole2);
+
+                jList2.addMouseListener(new DirectoryActionJList(jList2, 0));
+                jList2.addKeyListener(null);
+            }
+        } catch (MalformedURLException ex) {
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Open album", ex.getMessage());
+            ed.setVisible(true);
+        } catch (IOException ex) {
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Open album", ex.getMessage());
+            ed.setVisible(true);
+        } catch (ServiceException ex) {
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Open album", ex.getMessage());
+            ed.setVisible(true);
+            ex.printStackTrace();
+        }
+    }
+
+    class MyKeyListener implements KeyListener {
+
+        public void keyTyped(KeyEvent e) {
+        }
+
+        public void keyPressed(KeyEvent e) {
+            @SuppressWarnings("static-access")
+            String key = KeyEvent.getKeyText(e.getKeyCode());
+            if (key.equalsIgnoreCase("F1")) {
+                propertiesDialog();
+            } else if (key.equalsIgnoreCase("F2")) {
+                renameDialog();
+            } else if (key.equalsIgnoreCase("F3")) {
+                makeDirDialog();
+            } else if (key.equalsIgnoreCase("F4")) {
+            } else if (key.equalsIgnoreCase("F5")) {
+                copyDialog();
+            } else if (key.equalsIgnoreCase("F6")) {
+                moveDialog();
+            } else if (key.equalsIgnoreCase("F7")) {
+                removeDialog();
+            } else if (key.equalsIgnoreCase("F8")) {
+                showUploadDialog();
+            } else if (key.equalsIgnoreCase("F9")) {
+                if (active != null && active.getName().equals("0") && jLabel2.getText().startsWith("/picasa")) {
+                    downloadPicasa(active);
+                }
+            }
+        }
+
+        public void keyReleased(KeyEvent e) {
+        }
+    }
+
+    class DirectoryActionJList extends MouseAdapter {
+
+        protected JList list;
+        protected int left;
+
+        public DirectoryActionJList(JList l, int left) {
+            list = l;
+            this.left = left;
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+                if (logPicasa && list.getName().equalsIgnoreCase("0") && jLabel2.getText().startsWith("/picasa")) {
+                    int index = list.locationToIndex(e.getPoint());
+                    ListModel lm = list.getModel();
+                    JPanel dir = (JPanel) lm.getElementAt(index);
+                    list.ensureIndexIsVisible(index);
+                    if (jLabel2.getText().equalsIgnoreCase("/picasa")) {
+                        openAlbum(dir.getName());
+                    } else {
+                        if (dir.getName().equals("..")) {
+                            listPicasa(list, 0);
+                        } else {
+                            openTempPicasaFile(dir.getName());
+                        }
+                    }
+                } else {
+                    int index = list.locationToIndex(e.getPoint());
+                    ListModel lm = list.getModel();
+                    JPanel dir = (JPanel) lm.getElementAt(index);
+                    list.ensureIndexIsVisible(index);
+                    File f = new File(dir.getName());
+                    if (f.isDirectory()) {
+                        listDirectory(dir.getName(), list, left);
+
+                    } else if (f.isFile() && desktop != null) {
+                        try {
+                            //desktop.edit(f);
+                            desktop.open(f);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            } else {
+                active = list;
+            }
+        }
+
+        public void mouseClickedOpen(MouseEvent e) {
+            int index = list.locationToIndex(e.getPoint());
+            ListModel lm = list.getModel();
+            JPanel dir = (JPanel) lm.getElementAt(index);
+
+            list.ensureIndexIsVisible(index);
+            File f = new File(dir.getName());
+            if (f.isDirectory()) {
+                listDirectory(dir.getName(), list, left);
+            } else if (f.isFile() && desktop != null) {
+                try {
+                    desktop.open(f);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+}
