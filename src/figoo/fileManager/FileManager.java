@@ -4,7 +4,11 @@
  */
 package figoo.fileManager;
 
+import com.google.gdata.client.docs.DocsService;
 import com.google.gdata.client.photos.PicasawebService;
+import com.google.gdata.client.spreadsheet.SpreadsheetService;
+import com.google.gdata.data.MediaContent;
+import com.google.gdata.data.media.MediaSource;
 import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
 import com.google.gdata.util.ServiceException;
@@ -132,7 +136,6 @@ public class FileManager {
         try {
             ext = " (*" + f.getName().substring(f.getName().lastIndexOf(".")) + ")";
         } catch (Exception s) {
-
         }
         fi.setType(filetype + ext);
         return fi;
@@ -402,7 +405,6 @@ public class FileManager {
         return file;
     }
 
-    
     private static boolean isResizeNeccessery(File newImage, int size) throws IOException, Exception {
 
         ImageInputStream imageStream = ImageIO.createImageInputStream(newImage);
@@ -425,4 +427,87 @@ public class FileManager {
         }
         return true;
     }
+
+    /**
+     *
+     * @param exportUrl
+     * @param filepath
+     * @param client
+     * @throws IOException
+     * @throws MalformedURLException
+     * @throws ServiceException
+     */
+    public static void downloadFile(String exportUrl, String filepath, DocsService client) throws IOException, MalformedURLException, ServiceException {
+        MediaContent mc = new MediaContent();
+        mc.setUri(exportUrl);
+
+        MediaSource ms = client.getMedia(mc);
+
+        InputStream inStream = null;
+        FileOutputStream outStream = null;
+        try {
+            inStream = ms.getInputStream();
+            outStream = new FileOutputStream(filepath);
+
+            int c;
+            while ((c = inStream.read()) != -1) {
+                outStream.write(c);
+            }
+        } catch (Exception ex) {
+                 ex.printStackTrace();
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "uploadFileFolder", ex.getMessage());
+                ed.setVisible(true);
+        } finally {
+            if (inStream != null) {
+                inStream.close();
+            }
+            if (outStream != null) {
+                outStream.flush();
+                outStream.close();
+            }
+        }
+    }
+
+    /**
+     *
+     * @param exportUrl
+     * @param filepath
+     * @param client
+     * @param spread
+     * @throws IOException
+     * @throws MalformedURLException
+     * @throws ServiceException
+     */
+    public static void downloadFile(String exportUrl, String filepath, DocsService client, SpreadsheetService spread) throws IOException, MalformedURLException, ServiceException {
+       MediaContent mc = new MediaContent();
+        mc.setUri(exportUrl);
+
+        MediaSource ms = client.getMedia(mc);
+
+        InputStream inStream = null;
+        FileOutputStream outStream = null;
+        try {
+            inStream = ms.getInputStream();
+            outStream = new FileOutputStream(filepath);
+
+            int c;
+            while ((c = inStream.read()) != -1) {
+                outStream.write(c);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "uploadFileFolder", ex.getMessage());
+            ed.setVisible(true);
+        } finally {
+            if (inStream != null) {
+                inStream.close();
+            }
+            if (outStream != null) {
+                outStream.flush();
+                outStream.close();
+            }
+        }
+    }
 }
+
+

@@ -73,6 +73,6 @@ public class RemoveTask extends SwingWorker<Void, Void> {
     public void done() {
         Toolkit.getDefaultToolkit().beep();
         cd.setVisible(false);
-        cd.getF().refresh();
+     //   cd.getF().refresh();
     }
 }

@@ -43,6 +43,7 @@ public class UploadPicasaTask extends SwingWorker<Void, Void> {
      * @param newAlbum
      * @param picasa
      * @param username
+     * @param location
      */
     public UploadPicasaTask(String album, String desc, String size, String access, UploadPicasaProgressDialog d, ArrayList<File> files, boolean newAlbum, PicasawebService picasa, String username, String location) {
         this.cd = d;

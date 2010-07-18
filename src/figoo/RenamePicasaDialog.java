@@ -146,7 +146,7 @@ public class RenamePicasaDialog extends javax.swing.JDialog {
             ed.setVisible(true);
             }
             
-            this.f.refresh();
+            
         }
         this.setVisible(false);
     }//GEN-LAST:event_rename

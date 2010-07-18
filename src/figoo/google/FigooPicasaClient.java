@@ -20,9 +20,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.activation.MimetypesFileTypeMap;
 
 /**
@@ -508,6 +506,7 @@ public class FigooPicasaClient {
      * @param access
      * @param picasa
      * @param username
+     * @param location
      * @return
      * @throws MalformedURLException
      * @throws IOException
@@ -541,7 +540,6 @@ public class FigooPicasaClient {
         myPhoto.setTitle(new PlainTextConstruct(file.getName()));
         myPhoto.setDescription(new PlainTextConstruct(""));
         myPhoto.setClient("Figoo");
-        System.out.println("FILE JE >" + file.getAbsolutePath());
         MediaFileSource myMedia = new MediaFileSource(file, new MimetypesFileTypeMap().getContentType(file));
         myPhoto.setMediaSource(myMedia);
         picasa.insert(albumPostUrl, myPhoto);

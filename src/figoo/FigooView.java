@@ -3,18 +3,25 @@
  */
 package figoo;
 
+import com.google.gdata.client.docs.DocsService;
 import com.google.gdata.client.photos.PicasawebService;
+import com.google.gdata.client.spreadsheet.SpreadsheetService;
+import com.google.gdata.data.docs.DocumentListEntry;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import figoo.classes.AlbumInfo;
 import figoo.classes.PhotoInfo;
 import figoo.classes.Session;
+import figoo.google.FigooDocsClient;
 import figoo.google.FigooPicasaClient;
 import figoo.guiClasses.ListRenderer;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jdesktop.application.Action;
 import org.jdesktop.application.SingleFrameApplication;
 import org.jdesktop.application.FrameView;
@@ -40,8 +47,12 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import javax.swing.ComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
@@ -61,6 +72,7 @@ public class FigooView extends FrameView {
         initComponents();
         //googleInit();
         icons = new HashMap<String, Icon>();
+        docsStructure = new HashMap<String, String>();
         desktop = null;
         if (Desktop.isDesktopSupported()) {
             desktop = Desktop.getDesktop();
@@ -342,7 +354,7 @@ public class FigooView extends FrameView {
             if (logPicasa) {
                 al.add("Picasa");
             }
-            if (logGdocs) {
+            if (logDoc) {
                 al.add("GDocs");
             }
 
@@ -379,7 +391,7 @@ public class FigooView extends FrameView {
         } else {
 
             for (int i = 0; i < cb.getItemCount(); i++) {
-                if (!jLabel2.getText().equalsIgnoreCase("/picasa") &&jLabel2.getText().startsWith((String) cb.getItemAt(i))) {
+                if (!jLabel2.getText().equalsIgnoreCase("/picasa") && jLabel2.getText().startsWith((String) cb.getItemAt(i))) {
                     session.setRootR(jLabel2.getText(), i);
                 }
             }
@@ -388,7 +400,7 @@ public class FigooView extends FrameView {
             if (field.equalsIgnoreCase("/picasa")) {
                 listDirectory(jLabel1.getText(), jList1, 1);
                 listPicasa(jList2, 0);
-            } else if (field.equalsIgnoreCase("GDocs")) {
+            } else if (field.equalsIgnoreCase("/gdocs")) {
             } else {
                 System.out.println("IFF");
                 if (session.getRootR(cb.getSelectedIndex()) != null && session.getRootR(cb.getSelectedIndex()).length() > 1) {
@@ -441,6 +453,8 @@ public class FigooView extends FrameView {
         jButton11 = new javax.swing.JButton();
         jButton12 = new javax.swing.JButton();
         jButton13 = new javax.swing.JButton();
+        jButton15 = new javax.swing.JButton();
+        jButton16 = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jPanel17 = new javax.swing.JPanel();
@@ -689,6 +703,34 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton13);
 
+        jButton15.setBackground(resourceMap.getColor("jButton15.background")); // NOI18N
+        jButton15.setIcon(resourceMap.getIcon("jButton15.icon")); // NOI18N
+        jButton15.setToolTipText(resourceMap.getString("jButton15.toolTipText")); // NOI18N
+        jButton15.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton15.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton15.setName("jButton15"); // NOI18N
+        jButton15.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton15.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton15loginPicasaDialog(evt);
+            }
+        });
+        jPanel8.add(jButton15);
+
+        jButton16.setBackground(resourceMap.getColor("jButton16.background")); // NOI18N
+        jButton16.setIcon(resourceMap.getIcon("jButton16.icon")); // NOI18N
+        jButton16.setToolTipText(resourceMap.getString("jButton16.toolTipText")); // NOI18N
+        jButton16.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton16.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton16.setName("jButton16"); // NOI18N
+        jButton16.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton16.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton16logoutPicasa(evt);
+            }
+        });
+        jPanel8.add(jButton16);
+
         jPanel2.add(jPanel8);
 
         jPanel7.setName("jPanel7"); // NOI18N
@@ -935,7 +977,11 @@ public class FigooView extends FrameView {
     }//GEN-LAST:event_moveFiles
 
     private void deleteFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteFile
-        removeDialog();        // TODO add your handling code here:
+        if (jLabel2.getText().startsWith("/docs")) {
+            removeGDocsDialog();
+        } else {
+            removeDialog();
+        } // TODO add your handling code here:
     }//GEN-LAST:event_deleteFile
 
     private void fileInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileInfo
@@ -961,7 +1007,7 @@ public class FigooView extends FrameView {
      */
     public void loginPicasa(String u, String p) {
         try {
-            this.username = u;
+            this.usernamePicasa = u;
             picasa = FigooPicasaClient.logPicasa(u, p);
             this.logPicasa = true;
             ComboBoxModel cm = rootBox2.getModel();
@@ -971,7 +1017,7 @@ public class FigooView extends FrameView {
             jButton8.setEnabled(true);
             listPicasa(jList2, 0);
         } catch (AuthenticationException ex) {
-            this.logPicasa=false;
+            this.logPicasa = false;
             ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Picasa Login", ex.getMessage());
             ex.printStackTrace();
             ed.setVisible(true);
@@ -1004,6 +1050,57 @@ public class FigooView extends FrameView {
         // TODO add your handling code here:
         showUploadDialog();
     }//GEN-LAST:event_uploadDialog
+
+    private void jButton15loginPicasaDialog(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15loginPicasaDialog
+        if (!logDoc) {
+            try {
+                DocLogin pl = new DocLogin(getFrame(), true, this);
+                pl.setVisible(true);
+            } catch (Exception ex) {
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Picasa dialog", ex.getMessage());
+                ed.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_jButton15loginPicasaDialog
+
+    private void jButton16logoutPicasa(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton16logoutPicasa
+        logDoc = false;
+        docs = null;
+        jButton8.setEnabled(false);
+        duplicateLeftView(evt);
+        refresh();
+    }//GEN-LAST:event_jButton16logoutPicasa
+
+    public void googleInit() {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(new File(""));
+            InputStreamReader in = new InputStreamReader(fis);
+            BufferedReader b = new BufferedReader(in);
+            String line = "";
+
+            while (b.ready()) {
+                line = b.readLine();
+            }
+            this.usernameDoc = "";
+            String pass = line;
+
+            loginDocs(this.usernameDoc, pass);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "google init ", ex.getMessage());
+            ed.setVisible(true);
+        } finally {
+            try {
+                fis.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "google init ", ex.getMessage());
+                ed.setVisible(true);
+            }
+        }
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
@@ -1011,6 +1108,8 @@ public class FigooView extends FrameView {
     private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton14;
+    private javax.swing.JButton jButton15;
+    private javax.swing.JButton jButton16;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -1048,6 +1147,7 @@ public class FigooView extends FrameView {
     private javax.swing.JPanel statusPanel;
     // End of variables declaration//GEN-END:variables
     private JDialog aboutBox;
+    private String currentGFolder;
     private JList active;
     /**
      *
@@ -1055,6 +1155,7 @@ public class FigooView extends FrameView {
     public Session session;
     private JFileChooser fileChooser;
     private Map<String, Icon> icons = null;
+    private Map<String, String> docsStructure = null;
     private Desktop desktop;
     private JComboBox rootBox2;
     private JComboBox rootBox;
@@ -1062,11 +1163,15 @@ public class FigooView extends FrameView {
      *
      */
     public boolean cont = false;
-    private String username;
+    private String usernamePicasa;
+    private String usernameDoc;
     //private String pass;
     private boolean logPicasa = false;
-    private boolean logGdocs = false;
+    private boolean logDoc = false;
     private PicasawebService picasa;
+    private DocsService docs;
+    private SpreadsheetService spreads;
+    public boolean trash = true;
 
     /**
      *
@@ -1106,7 +1211,7 @@ public class FigooView extends FrameView {
                         try {
                             p = (JPanel) f[i];
                             String id = p.getName();
-                            RenamePicasaDialog rd = new RenamePicasaDialog(this, this.getFrame(), true, id, picasa, username);
+                            RenamePicasaDialog rd = new RenamePicasaDialog(this, this.getFrame(), true, id, picasa, usernamePicasa);
                             rd.setVisible(true);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -1114,8 +1219,28 @@ public class FigooView extends FrameView {
                             ed.setVisible(true);
                         }
                     }
+                    refresh();
                 }
             }
+        } else if (active.getName().equals("0") && jLabel2.getText().startsWith("/docs")) {
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+                JPanel p;
+                for (int i = 0; i < f.length; i++) {
+                    try {
+                        p = (JPanel) f[i];
+                        String id = p.getName();
+                        RenameGFileDialog rd = new RenameGFileDialog(this.getFrame(), true, id, docs);
+                        rd.setVisible(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "RenameDialog error", e.getMessage());
+                        ed.setVisible(true);
+                    }
+                }
+            }
+            refresh();
         } else {
             try {
                 Object[] f = active.getSelectedValues();
@@ -1150,6 +1275,7 @@ public class FigooView extends FrameView {
                         }
                     }
                 }
+                    refresh();
             } catch (java.lang.NullPointerException n) {
                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error rename", n.getMessage());
                 ed.setVisible(true);
@@ -1157,8 +1283,40 @@ public class FigooView extends FrameView {
         }
     }
 
+    private void downloadDocs() {
+        Object[] f = active.getSelectedValues();
+        int[] indices = active.getSelectedIndices();
+        if (indices.length > 1) {
+            JPanel p;
+            for (int i = 0; i < f.length; i++) {
+                try {
+                    p = (JPanel) f[i];
+                    String resourceID = p.getName();
+                    DownloadSingleGDocDialog dd = new DownloadSingleGDocDialog(this.getFrame(), true, resourceID, this.docs, jLabel1.getText(), spreads);
+                    dd.setVisible(true);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "DownloadDocs error", e.getMessage());
+                    ed.setVisible(true);
+                }
+            }
+        }
+        if (indices.length == 1) {
+            JPanel p = (JPanel) active.getSelectedValue();
+            String resourceID = p.getName();
+            DownloadSingleGDocDialog dd = new DownloadSingleGDocDialog(this.getFrame(), true, resourceID, this.docs, jLabel1.getText(), spreads);
+            dd.setVisible(true);
+
+        }
+        listDirectory(jLabel1.getText(), jList1, 1);
+    }
+
+    private void modifyDocs() {
+    }
+
     private void copyDialog() {
-        if (!jLabel2.getText().startsWith("/picasa")) {
+        if (!jLabel2.getText().startsWith("/picasa") && !jLabel2.getText().startsWith("/docs")) {
             Object[] f = active.getSelectedValues();
             int[] indices = active.getSelectedIndices();
             if (indices.length > 0) {
@@ -1222,7 +1380,7 @@ public class FigooView extends FrameView {
     }
 
     private void moveDialog() {
-        if (!jLabel2.getText().startsWith("/picasa")) {
+        if (!jLabel2.getText().startsWith("/picasa") && !jLabel2.getText().startsWith("/docs")) {
             Object[] f = active.getSelectedValues();
             int[] indices = active.getSelectedIndices();
             if (indices.length > 0) {
@@ -1291,8 +1449,20 @@ public class FigooView extends FrameView {
             md.setVisible(true);
         } else {
             if (!jLabel2.getText().startsWith("/picasa")) {
-                MakeDirDialog md = new MakeDirDialog(this, this.getFrame(), true, jLabel2.getText());
-                md.setVisible(true);
+                if (jLabel2.getText().startsWith("/docs")) {
+                    if (jLabel2.getText().equals("/docs")) {
+                        MakeGFolderDialog md = new MakeGFolderDialog(this.getFrame(), true, docs, "root");
+                        md.setVisible(true);
+                    } else {
+
+                        MakeGFolderDialog md = new MakeGFolderDialog(this.getFrame(), true, docs, currentGFolder);
+                        md.setVisible(true);
+                    }
+                    refresh();
+                } else {
+                    MakeDirDialog md = new MakeDirDialog(this, this.getFrame(), true, jLabel2.getText());
+                    md.setVisible(true);
+                }
             }
         }
     }
@@ -1301,8 +1471,69 @@ public class FigooView extends FrameView {
         if (active != null & active.getName().equalsIgnoreCase("1") && jLabel2.getText().startsWith("/picasa")) {
             int index = (active.getSelectedIndex());
             JPanel p = (JPanel) active.getSelectedValue();
-            UploadPicasaDialog d = new UploadPicasaDialog(this.getFrame(), true, picasa, username, p.getName(), this);
+            UploadPicasaDialog d = new UploadPicasaDialog(this.getFrame(), true, picasa, usernamePicasa, p.getName(), this);
             d.setVisible(true);
+        }
+
+        if (active != null & active.getName().equalsIgnoreCase("1") && jLabel2.getText().startsWith("/docs")) {
+            System.err.println("TODO UPLOAD DOC");
+
+            Object[] f = active.getSelectedValues();
+            int[] indices = active.getSelectedIndices();
+            if (indices.length > 0) {
+
+                JPanel p;
+                int i = 0;
+                if (indices[0] == 0) {
+                    for (i = 1; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            String toRes = "";
+                            if (jLabel2.getText().equals("/docs")) {
+                                toRes = "root";
+                            } else {
+                                toRes = currentGFolder;
+                            }
+
+                            try {
+                                UploadGDocsProgressDialog cd = new UploadGDocsProgressDialog(this.getFrame(), true, file, toRes,docs);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "showUploadDialog dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "showUploadDialog dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                } else {
+                    for (i = 0; i < f.length; i++) {
+                        try {
+                            p = (JPanel) f[i];
+                            String file = p.getName();
+                            String toRes = "";
+                            if (jLabel2.getText().equals("/docs")) {
+                                toRes = "root";
+                            } else {
+                                toRes = currentGFolder;
+                            }
+                            try {
+                                UploadGDocsProgressDialog cd = new UploadGDocsProgressDialog(this.getFrame(), true, file, toRes,docs);
+                                cd.setVisible(true);
+                            } catch (Exception n) {
+                                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "showUploadDialog dialog", n.getMessage());
+                                ed.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "showUploadDialog dialog", e.getMessage());
+                            ed.setVisible(true);
+                        }
+                    }
+                }
+            }
+            refresh();
         }
     }
 
@@ -1320,7 +1551,7 @@ public class FigooView extends FrameView {
                         for (int i = 0; i < f.length; i++) {
                             p = (JPanel) f[i];
                             String file = p.getName();
-                            RemovePicasaDialog cd = new RemovePicasaDialog(this, this.getFrame(), true, file, true, username, picasa);
+                            RemovePicasaDialog cd = new RemovePicasaDialog(this, this.getFrame(), true, file, true, usernamePicasa, picasa);
                             cd.setVisible(true);
                         }
                     }
@@ -1330,7 +1561,7 @@ public class FigooView extends FrameView {
                     int[] indices = active.getSelectedIndices();
                     if (indices.length > 0) {
 
-                        RemovePicasaFileDialog cd = new RemovePicasaFileDialog(this, this.getFrame(), true, username, picasa, f);
+                        RemovePicasaFileDialog cd = new RemovePicasaFileDialog(this, this.getFrame(), true, usernamePicasa, picasa, f);
                         cd.setVisible(true);
                     }
                     refresh();
@@ -1375,10 +1606,34 @@ public class FigooView extends FrameView {
                                 ed.setVisible(true);
                             }
                         }
+                        refresh();
                     }
                 }
             }
         }
+    }
+
+    private void removeGDocsDialog() {
+        YesNoGDocsDialog y = new YesNoGDocsDialog(this.getFrame(), true, this);
+        y.setVisible(true);
+        if (cont) {
+            cont = false;
+            if (active.getName().equals("0") && jLabel2.getText().startsWith("/docs")) {
+                Object[] f = active.getSelectedValues();
+                int[] indices = active.getSelectedIndices();
+                if (indices.length > 0) {
+                    JPanel p;
+                    for (int i = 0; i < f.length; i++) {
+                        p = (JPanel) f[i];
+                        String resourceId = p.getName();
+                        RemoveGDocsFileDialog cd = new RemoveGDocsFileDialog(this.getFrame(), true, resourceId, trash, docs);
+                        cd.setVisible(true);
+                    }
+                }
+                refresh();
+            }
+        }
+        trash = true;
     }
 
     private void propertiesDialog() {
@@ -1391,7 +1646,7 @@ public class FigooView extends FrameView {
 
                         String albumID = ((JPanel) f[i]).getName();
                         try {
-                            AlbumInfo a = FigooPicasaClient.getAlbumInfo(albumID, username, picasa);
+                            AlbumInfo a = FigooPicasaClient.getAlbumInfo(albumID, usernamePicasa, picasa);
                             AlbumInfoDialog ad = new AlbumInfoDialog(getFrame(), false, a);
                             ad.setVisible(true);
                         } catch (MalformedURLException ex) {
@@ -1412,7 +1667,7 @@ public class FigooView extends FrameView {
                     for (int i = 0; i < f.length; i++) {
                         String albumID = ((JPanel) f[i]).getName();
                         try {
-                            PhotoInfoDialog id = new PhotoInfoDialog(getFrame(), false, FigooPicasaClient.getPhotoInfo(albumID, picasa, username));
+                            PhotoInfoDialog id = new PhotoInfoDialog(getFrame(), false, FigooPicasaClient.getPhotoInfo(albumID, picasa, usernamePicasa));
                             id.setVisible(true);
                         } catch (MalformedURLException ex) {
                             ex.printStackTrace();
@@ -1430,6 +1685,8 @@ public class FigooView extends FrameView {
                     }
                 }
             }
+        } else if (logPicasa && jLabel2.getText().startsWith("/docs") && active.getName().equalsIgnoreCase("0")) {
+            // doc
         } else {
             Object[] f = active.getSelectedValues();
             int[] indices = active.getSelectedIndices();
@@ -1480,23 +1737,35 @@ public class FigooView extends FrameView {
      */
     public void refresh() {
         listDirectory(jLabel1.getText(), jList1, 1);
-        if (!jLabel2.getText().startsWith("/picasa")) {
+        if (!jLabel2.getText().startsWith("/picasa") && !jLabel2.getText().startsWith("/docs")) {
             listDirectory(jLabel2.getText(), jList2, 0);
             findRoots(jLabel2.getText(), 0);
         } else {
-            listPicasa(jList2, 0);
+            if (jLabel2.getText().startsWith("/picasa")) {
+                listPicasa(jList2, 0);
+            } else {
+
+                try {
+                    docsStructure = FigooDocsClient.getStructure(docs);
+                    listDocs(jList2, 0);
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(FigooView.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(FigooView.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ServiceException ex) {
+                    Logger.getLogger(FigooView.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         findRoots(jLabel1.getText(), 1);
     }
-
-
 
     private void listPicasa(JList list, int left) {
         try {
             jButton11.setEnabled(false);
             System.out.println("listing picasa");
-            ArrayList<String> titles = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, this.username);
-            ArrayList<String> ids = FigooPicasaClient.getAllPicasaAlbumID(picasa, this.username);
+            ArrayList<String> titles = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, this.usernamePicasa);
+            ArrayList<String> ids = FigooPicasaClient.getAllPicasaAlbumID(picasa, this.usernamePicasa);
             list = new JList();
             list.setName(left + "");
             list.addKeyListener(new MyKeyListener());
@@ -1648,7 +1917,7 @@ public class FigooView extends FrameView {
                         lis.ensureIndexIsVisible(indices[i]);
                         String p = dir.getName();
                         System.out.println("LETS ROCK");
-                        DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, username, p, true);
+                        DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, usernamePicasa, p, true);
                         dp.setVisible(true);
                     }
                 } catch (Exception ex) {
@@ -1663,7 +1932,7 @@ public class FigooView extends FrameView {
                     lis.ensureIndexIsVisible(indices[i]);
                     todo.add(dir.getName());
                 }
-                DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, username, todo, false);
+                DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, usernamePicasa, todo, false);
                 dp.setVisible(true);
             }
         }
@@ -1683,8 +1952,8 @@ public class FigooView extends FrameView {
                         p = (JPanel) f[i];
                         String file = p.getName();
                         try {
-                            al = FigooPicasaClient.getAlbumInfo(file, username, picasa);
-                            ModifyAlbumPicasaDialog cd = new ModifyAlbumPicasaDialog(this.getFrame(), false, al, picasa, username, this);
+                            al = FigooPicasaClient.getAlbumInfo(file, usernamePicasa, picasa);
+                            ModifyAlbumPicasaDialog cd = new ModifyAlbumPicasaDialog(this.getFrame(), false, al, picasa, usernamePicasa, this);
                             cd.setVisible(true);
                         } catch (Exception n) {
                             ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
@@ -1710,8 +1979,8 @@ public class FigooView extends FrameView {
                             p = (JPanel) f[i];
                             String file = p.getName();
                             try {
-                                al = FigooPicasaClient.getPhotoInfo(file, picasa, username);
-                                ModifyPhotoPicasaDialog cd = new ModifyPhotoPicasaDialog(this.getFrame(), false, al, picasa, username, this);
+                                al = FigooPicasaClient.getPhotoInfo(file, picasa, usernamePicasa);
+                                ModifyPhotoPicasaDialog cd = new ModifyPhotoPicasaDialog(this.getFrame(), false, al, picasa, usernamePicasa, this);
                                 cd.setVisible(true);
                             } catch (Exception n) {
                                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
@@ -1730,7 +1999,7 @@ public class FigooView extends FrameView {
     private void openTempPicasaFile(String idPicture) {
         String size = "s640";
         try {
-            FigooPicasaClient.downloadTempPhoto(desktop, size, idPicture, picasa, username);
+            FigooPicasaClient.downloadTempPhoto(desktop, size, idPicture, picasa, usernamePicasa);
         } catch (MalformedURLException ex) {
             ex.printStackTrace();
             ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "openTempPicasaFile error", ex.getMessage());
@@ -1762,9 +2031,9 @@ public class FigooView extends FrameView {
 
     private void openAlbum(String id) {
         try {
-            ArrayList<String> titles = FigooPicasaClient.listPicasaAlbumTitle(picasa, id, this.username);
-            ArrayList<String> ids = FigooPicasaClient.listPicasaAlbumID(picasa, id, this.username);
-            String albumName = FigooPicasaClient.getAlbumNameByID(picasa, id, this.username);
+            ArrayList<String> titles = FigooPicasaClient.listPicasaAlbumTitle(picasa, id, this.usernamePicasa);
+            ArrayList<String> ids = FigooPicasaClient.listPicasaAlbumID(picasa, id, this.usernamePicasa);
+            String albumName = FigooPicasaClient.getAlbumNameByID(picasa, id, this.usernamePicasa);
 
             jButton11.setEnabled(false);
             jList2 = new JList();
@@ -1892,6 +2161,341 @@ public class FigooView extends FrameView {
         }
     }
 
+    public void loginDocs(String u, String p) {
+        try {
+            this.usernameDoc = u;
+            docs = FigooDocsClient.logDocs(u, p);
+            spreads = FigooDocsClient.logSpreads(u, p);
+            this.logDoc = true;
+            ComboBoxModel cm = rootBox2.getModel();
+            int index = cm.getSize();
+            rootBox2.addItem(new String("/gdocs"));
+            rootBox2.setSelectedIndex(index);
+            jButton8.setEnabled(true);
+            docsStructure = FigooDocsClient.getStructure(docs);
+            listDocs(jList2, 0);
+        } catch (Exception ex) {
+            this.logDoc = false;
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Docs Login", ex.getMessage());
+            ex.printStackTrace();
+            ed.setVisible(true);
+        }
+    }
+
+    private void listDocs(JList list, int left) {
+        try {
+            org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(FigooView.class);
+            jButton11.setEnabled(false);
+            System.out.println("listing docs");
+            ArrayList<DocumentListEntry> files = FigooDocsClient.getRootContent(docs);
+            list = new JList();
+            list.setName(left + "");
+            list.addKeyListener(new MyKeyListener());
+
+            if (left == 1) {
+                jScrollPane1.setViewportView(list);
+            } else {
+                jScrollPane2.setViewportView(list);
+            }
+            DefaultListModel listModel = new DefaultListModel();
+            list.setCellRenderer(new ListRenderer());
+            jLabel2.setText("/docs");
+            //list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            final JList list2 = list;
+
+            if (files != null) {
+
+                Vector pole = new Vector();
+                Vector pole2 = new Vector();
+
+                JLabel icon;
+                JPopupMenu popup;
+                JMenuItem menuItem;
+                popup = new JPopupMenu();
+                menuItem = new JMenuItem("Open");
+                menuItem.setFont(new Font("Tahoma", Font.BOLD, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Download");
+                menuItem.setFont(new Font("Tahoma", Font.PLAIN, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        downloadDocs();
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Delete");
+                menuItem.setFont(new Font("Tahoma", Font.PLAIN, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        removeGDocsDialog();
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Rename");
+                menuItem.setFont(new Font("Tahoma", Font.PLAIN, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        renameDialog();
+                    }
+                });
+                popup.add(menuItem);
+
+                JPanel p;
+                JLabel name;
+                File dir = new File(System.getProperty("user.home"));
+                DocumentListEntry entry;
+                for (int i = 0; i < files.size(); i++) {
+                    p = new JPanel();
+                    entry = files.get(i);
+                    p.setName(entry.getResourceId());
+                    p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                    name = new JLabel(entry.getTitle().getPlainText());
+                    String type = entry.getType();
+                    if (type.equals("folder")) {
+
+                        File tmp = new File(System.getProperty("java.io.tmpdir"));
+                        Icon image = getIcon(tmp);
+                        icon = new JLabel(image);
+                        p.add(icon);
+
+                    } else if (type.equals("document")) {
+                        icon = new JLabel();
+                        icon.setIcon((resourceMap.getIcon("doc.icon")));
+                        p.add(icon);
+                    } else if (type.equals("presentation")) {
+                        icon = new JLabel();
+                        icon.setIcon((resourceMap.getIcon("ppt.icon")));
+                        p.add(icon);
+                    } else if (type.equals("spreadsheet")) {
+                        icon = new JLabel();
+                        icon.setIcon((resourceMap.getIcon("xls.icon")));
+                        p.add(icon);
+                    } else if (type.equals("file") || type.equals("pdf")) {
+                        File tmp = new File(System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + files.get(i).getTitle().getPlainText());
+                        if (!tmp.exists()) {
+                            tmp.createNewFile();
+                        }
+                        tmp.deleteOnExit();
+                        Icon image = getIcon(tmp);
+                        icon = new JLabel(image);
+                        p.add(icon);
+                    }
+                    pole.add(p);
+                    p.add(name);
+                }
+
+                final JPopupMenu popup2 = popup;
+
+                list.addMouseListener(new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent me) {
+                        // if right mouse button clicked (or me.isPopupTrigger())
+                        if (SwingUtilities.isRightMouseButton(me)
+                                && !list2.isSelectionEmpty()
+                                && list2.locationToIndex(me.getPoint())
+                                == list2.getSelectedIndex()) {
+                            popup2.show(list2, me.getX(), me.getY());
+                        }
+                    }
+                });
+                pole2.addAll(pole);
+                list.setListData(pole2);
+
+                list.addMouseListener(new DirectoryActionJList(list, left));
+                list.addKeyListener(null);
+            }
+        } catch (MalformedURLException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List docs1", ex.getMessage());
+            ed.setVisible(true);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List docs2", ex.getMessage());
+            ed.setVisible(true);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List docs3", ex.getMessage());
+            ed.setVisible(true);
+        }
+    }
+
+    private void listDocs(JList list, int left, String resourceID) {
+        try {
+            org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(FigooView.class);
+            jButton11.setEnabled(false);
+            System.out.println("listing docs");
+            this.currentGFolder = resourceID;
+            ArrayList<DocumentListEntry> files = FigooDocsClient.getFolderContent(resourceID, docs);
+            list = new JList();
+            list.setName(left + "");
+            list.addKeyListener(new MyKeyListener());
+
+            if (left == 1) {
+                jScrollPane1.setViewportView(list);
+            } else {
+                jScrollPane2.setViewportView(list);
+            }
+            list.setCellRenderer(new ListRenderer());
+            final JList list2 = list;
+
+            if (files != null) {
+
+                Vector pole = new Vector();
+                Vector pole2 = new Vector();
+
+                JLabel icon;
+                JPopupMenu popup;
+                JMenuItem menuItem;
+                popup = new JPopupMenu();
+                menuItem = new JMenuItem("Open");
+                menuItem.setFont(new Font("Tahoma", Font.BOLD, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Download");
+                menuItem.setFont(new Font("Tahoma", Font.PLAIN, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        downloadDocs();
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Delete");
+                menuItem.setFont(new Font("Tahoma", Font.PLAIN, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        removeGDocsDialog();
+                    }
+                });
+                popup.add(menuItem);
+
+
+                menuItem = new JMenuItem("Rename");
+                menuItem.setFont(new Font("Tahoma", Font.PLAIN, 11));
+                menuItem.addActionListener(new java.awt.event.ActionListener() {
+
+                    public void actionPerformed(ActionEvent e) {
+                        renameDialog();
+                    }
+                });
+                popup.add(menuItem);
+
+                JPanel p = new JPanel();
+                String tt = this.docsStructure.get(resourceID);
+                if (tt.startsWith("folder")) {
+                    p.setName(this.docsStructure.get(resourceID));
+                } else {
+                    p.setName("folder:" + this.docsStructure.get(resourceID));
+                }
+                p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                JLabel name = new JLabel("..");
+                p.add(name);
+                pole2.add(p);
+                File dir = new File(System.getProperty("user.home"));
+                DocumentListEntry entry;
+                for (int i = 0; i < files.size(); i++) {
+                    p = new JPanel();
+                    entry = files.get(i);
+                    p.setName(entry.getResourceId());
+                    p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
+                    name = new JLabel(entry.getTitle().getPlainText());
+                    String type = entry.getType();
+                    if (type.equals("folder")) {
+
+                        File tmp = new File(System.getProperty("java.io.tmpdir"));
+                        Icon image = getIcon(tmp);
+                        icon = new JLabel(image);
+                        p.add(icon);
+
+                    } else if (type.equals("document")) {
+                        icon = new JLabel();
+                        icon.setIcon((resourceMap.getIcon("doc.icon")));
+                        p.add(icon);
+                    } else if (type.equals("presentation")) {
+                        icon = new JLabel();
+                        icon.setIcon((resourceMap.getIcon("ppt.icon")));
+                        p.add(icon);
+                    } else if (type.equals("spreadsheet")) {
+                        icon = new JLabel();
+                        icon.setIcon((resourceMap.getIcon("xls.icon")));
+                        p.add(icon);
+                    } else if (type.equals("file") || type.equals("pdf")) {
+                        File tmp = new File(System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + files.get(i).getTitle().getPlainText());
+                        if (type.equals("pdf") && !files.get(i).getTitle().getPlainText().endsWith("pdf")) {
+                            tmp = new File(System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + "tempp" + ".pdf");
+                        }
+
+                        if (!tmp.exists()) {
+                            tmp.createNewFile();
+                        }
+                        tmp.deleteOnExit();
+                        Icon image = getIcon(tmp);
+                        icon = new JLabel(image);
+                        p.add(icon);
+                    }
+                    pole.add(p);
+                    p.add(name);
+                }
+
+                final JPopupMenu popup2 = popup;
+
+                list.addMouseListener(new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent me) {
+                        // if right mouse button clicked (or me.isPopupTrigger())
+                        if (SwingUtilities.isRightMouseButton(me)
+                                && !list2.isSelectionEmpty()
+                                && list2.locationToIndex(me.getPoint())
+                                == list2.getSelectedIndex()) {
+                            popup2.show(list2, me.getX(), me.getY());
+                        }
+                    }
+                });
+                pole2.addAll(pole);
+                list.setListData(pole2);
+                list.addMouseListener(new DirectoryActionJList(list, left));
+                list.addKeyListener(null);
+            }
+        } catch (MalformedURLException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List docs1", ex.getMessage());
+            ed.setVisible(true);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List docs2", ex.getMessage());
+            ed.setVisible(true);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "List docs3", ex.getMessage());
+            ed.setVisible(true);
+        }
+    }
+
     class MyKeyListener implements KeyListener {
 
         public void keyTyped(KeyEvent e) {
@@ -1912,12 +2516,19 @@ public class FigooView extends FrameView {
             } else if (key.equalsIgnoreCase("F6")) {
                 moveDialog();
             } else if (key.equalsIgnoreCase("F7")) {
-                removeDialog();
+                if (jLabel2.getText().startsWith("/docs")) {
+                    removeGDocsDialog();
+                } else {
+                    removeDialog();
+                }
             } else if (key.equalsIgnoreCase("F8")) {
                 showUploadDialog();
             } else if (key.equalsIgnoreCase("F9")) {
                 if (active != null && active.getName().equals("0") && jLabel2.getText().startsWith("/picasa")) {
                     downloadPicasa(active);
+                }
+                if (active != null && active.getName().equals("0") && jLabel2.getText().startsWith("/docs")) {
+                    downloadDocs();
                 }
             }
         }
@@ -1938,6 +2549,7 @@ public class FigooView extends FrameView {
 
         @Override
         public void mouseClicked(MouseEvent e) {
+
             if (e.getClickCount() == 2) {
                 if (logPicasa && list.getName().equalsIgnoreCase("0") && jLabel2.getText().startsWith("/picasa")) {
                     int index = list.locationToIndex(e.getPoint());
@@ -1953,6 +2565,36 @@ public class FigooView extends FrameView {
                             openTempPicasaFile(dir.getName());
                         }
                     }
+                } else if (logDoc && list.getName().equalsIgnoreCase("0") && jLabel2.getText().startsWith("/docs")) {
+
+                    int index = list.locationToIndex(e.getPoint());
+                    ListModel lm = list.getModel();
+                    JPanel dir = (JPanel) lm.getElementAt(index);
+                    list.ensureIndexIsVisible(index);
+                    Component[] cmp = dir.getComponents();
+                    JLabel lab;
+                    try {
+                        lab = (JLabel) cmp[1];
+                    } catch (Exception ee) {
+                        lab = (JLabel) cmp[0];
+                    }
+
+
+                    if (lab.getText().equals("..")) {
+                        jLabel2.setText(jLabel2.getText().substring(0, jLabel2.getText().lastIndexOf("/")));
+                    } else {
+                        jLabel2.setText(jLabel2.getText() + "/" + lab.getText());
+                        //parentDocsID = dir.getName();
+                    }
+
+                    if (dir.getName().contains("root")) {
+                        listDocs(list, 0);
+                        jLabel2.setText("/docs");
+                    } else {
+                        listDocs(list, 0, dir.getName());
+                    }
+
+
                 } else {
                     int index = list.locationToIndex(e.getPoint());
                     ListModel lm = list.getModel();
@@ -1961,7 +2603,6 @@ public class FigooView extends FrameView {
                     File f = new File(dir.getName());
                     if (f.isDirectory()) {
                         listDirectory(dir.getName(), list, left);
-
                     } else if (f.isFile() && desktop != null) {
                         try {
                             //desktop.edit(f);

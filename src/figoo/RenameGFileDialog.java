@@ -10,39 +10,41 @@
  */
 package figoo;
 
-import figoo.fileManager.FileManager;
+import com.google.gdata.client.docs.DocsService;
+import com.google.gdata.client.photos.PicasawebService;
+import figoo.google.FigooDocsClient;
+import figoo.google.FigooPicasaClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.swing.JFrame;
 
 /**
  *
  * @author Lada Riha
  */
-public class RenameDialog extends javax.swing.JDialog {
+public class RenameGFileDialog extends javax.swing.JDialog {
 
     /** Creates new form RenameDialog
      * @param fg
      * @param parent
+     * @param id
      * @param modal
-     * @param path
+     * @param picasa
+     * @param username
      */
-    public RenameDialog(FigooView fg, java.awt.Frame parent, boolean modal, String path) {
-    
+    public RenameGFileDialog(JFrame parent, boolean modal, String resourceId, DocsService docs) {
+
         super(parent, modal);
         //this.setAlwaysOnTop(true);
-        this.setTitle("File "+path);
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         int w = this.getSize().width;
         int h = this.getSize().height;
-        this.f = fg;
+        this.resourceID = resourceId;
+        this.docs = docs;
         int left = (d.width - w) / 2;
         int top = (d.height - h) / 2;
         this.setLocation(left, top);
         initComponents();
-        this.path = path;
-
     }
 
     /** This method is called from within the constructor to
@@ -62,7 +64,7 @@ public class RenameDialog extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setName("Form"); // NOI18N
 
-        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(RenameDialog.class);
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(RenameGFileDialog.class);
         jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
         jButton1.setName("jButton1"); // NOI18N
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -131,12 +133,13 @@ public class RenameDialog extends javax.swing.JDialog {
         // TODO add your handling code here:
         if (jTextField1.getText().trim().length() > 0) {
             try {
-                FileManager.rename(this.path, jTextField1.getText().trim());
+                FigooDocsClient.rename(docs, resourceID, jTextField1.getText());
             } catch (Exception ex) {
-                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on RenameDialog", ex.getMessage());
-            ed.setVisible(true);
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on RenameDialog", ex.getMessage());
+                ed.setVisible(true);
             }
-            
+
+
         }
         this.setVisible(false);
     }//GEN-LAST:event_rename
@@ -149,6 +152,8 @@ public class RenameDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
-    private String path;
     private FigooView f;
+    private String username;
+    private String resourceID;
+    private DocsService docs;
 }

@@ -10,39 +10,28 @@
  */
 package figoo;
 
-import figoo.fileManager.FileManager;
+import com.google.gdata.client.docs.DocsService;
+import figoo.google.FigooDocsClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Lada Riha
  */
-public class RenameDialog extends javax.swing.JDialog {
+public class MakeGFolderDialog extends javax.swing.JDialog {
 
-    /** Creates new form RenameDialog
-     * @param fg
-     * @param parent
-     * @param modal
-     * @param path
-     */
-    public RenameDialog(FigooView fg, java.awt.Frame parent, boolean modal, String path) {
-    
+    public MakeGFolderDialog(java.awt.Frame parent, boolean modal, DocsService docs, String parentFolder) {
         super(parent, modal);
-        //this.setAlwaysOnTop(true);
-        this.setTitle("File "+path);
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         int w = this.getSize().width;
         int h = this.getSize().height;
-        this.f = fg;
         int left = (d.width - w) / 2;
         int top = (d.height - h) / 2;
         this.setLocation(left, top);
         initComponents();
-        this.path = path;
-
+        this.docs = docs;
+        this.parent = parentFolder;
     }
 
     /** This method is called from within the constructor to
@@ -62,12 +51,12 @@ public class RenameDialog extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setName("Form"); // NOI18N
 
-        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(RenameDialog.class);
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(MakeGFolderDialog.class);
         jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
         jButton1.setName("jButton1"); // NOI18N
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelRename(evt);
+                cancelMakeDir(evt);
             }
         });
 
@@ -75,7 +64,7 @@ public class RenameDialog extends javax.swing.JDialog {
         jButton2.setName("jButton2"); // NOI18N
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rename(evt);
+                makeDir(evt);
             }
         });
 
@@ -122,24 +111,23 @@ public class RenameDialog extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cancelRename(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelRename
+    private void cancelMakeDir(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelMakeDir
         // TODO add your handling code here:
         this.setVisible(false);
-    }//GEN-LAST:event_cancelRename
+    }//GEN-LAST:event_cancelMakeDir
 
-    private void rename(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rename
+    private void makeDir(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeDir
         // TODO add your handling code here:
         if (jTextField1.getText().trim().length() > 0) {
             try {
-                FileManager.rename(this.path, jTextField1.getText().trim());
+                FigooDocsClient.makeFolder(docs, jTextField1.getText().trim(), parent);
             } catch (Exception ex) {
-                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on RenameDialog", ex.getMessage());
-            ed.setVisible(true);
+                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on RenameDialog", ex.getMessage());
+                ed.setVisible(true);
             }
-            
         }
         this.setVisible(false);
-    }//GEN-LAST:event_rename
+    }//GEN-LAST:event_makeDir
     /**
      * @param args the command line arguments
      */
@@ -149,6 +137,6 @@ public class RenameDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
-    private String path;
-    private FigooView f;
+    private DocsService docs;
+    private String parent;
 }
