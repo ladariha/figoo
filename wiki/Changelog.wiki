@@ -1,0 +1,11 @@
+#labels Featured
+= Changelog =
+
+=== v2.0.1 - August 1, 2010 ===
+ * minor fixes
+
+=== v2.0 - June, 2010 ===
+ * Google Documents support
+
+=== v1.0 - June, 2010 ===
+ * Picasa support
