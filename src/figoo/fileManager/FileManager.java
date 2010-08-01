@@ -429,9 +429,9 @@ public class FileManager {
     }
 
     /**
-     *
+     * Downloads file from given url address
      * @param exportUrl
-     * @param filepath
+     * @param filepath target folder
      * @param client
      * @throws IOException
      * @throws MalformedURLException
@@ -469,9 +469,9 @@ public class FileManager {
     }
 
     /**
-     *
+     * Downloads file from given url address
      * @param exportUrl
-     * @param filepath
+     * @param filepath target folder
      * @param client
      * @param spread
      * @throws IOException

@@ -8,7 +8,6 @@
  *
  * Created on 25.6.2010, 17:59:35
  */
-
 package figoo;
 
 import java.awt.Dimension;
@@ -28,7 +27,7 @@ public class YesNoGDocsDialog extends javax.swing.JDialog {
     public YesNoGDocsDialog(java.awt.Frame parent, boolean modal, FigooView fw) {
         super(parent, modal);
         initComponents();
-          Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         int w = this.getSize().width;
         int h = this.getSize().height;
         int left = (d.width - w) / 2;
@@ -120,24 +119,20 @@ public class YesNoGDocsDialog extends javax.swing.JDialog {
     private void actionContinue(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_actionContinue
         // TODO add your handling code here:
         this.fw.cont = true;
-        this.fw.trash  = jCheckBox1.isSelected();
+        this.fw.trash = jCheckBox1.isSelected();
         this.setVisible(false);
     }//GEN-LAST:event_actionContinue
 
     private void actionCancel(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_actionCancel
         // TODO add your handling code here:
-              this.fw.cont = false;
+        this.fw.cont = false;
         this.setVisible(false);
     }//GEN-LAST:event_actionCancel
-
-
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
-private FigooView fw;
-
+    private FigooView fw;
 }

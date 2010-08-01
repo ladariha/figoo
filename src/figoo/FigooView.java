@@ -52,7 +52,6 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import javax.swing.ComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
@@ -332,7 +331,6 @@ public class FigooView extends FrameView {
             }
 
             rootBox = new JComboBox(al.toArray());
-
             rootBox.setSelectedIndex(index);
             rootBox.setName("1");//left one
             rootBox.addActionListener(new java.awt.event.ActionListener() {
@@ -402,7 +400,6 @@ public class FigooView extends FrameView {
                 listPicasa(jList2, 0);
             } else if (field.equalsIgnoreCase("/gdocs")) {
             } else {
-                System.out.println("IFF");
                 if (session.getRootR(cb.getSelectedIndex()) != null && session.getRootR(cb.getSelectedIndex()).length() > 1) {
                     listDirectory(session.getRootR(cb.getSelectedIndex()), jList2, 0);
                 } else {
@@ -981,7 +978,7 @@ public class FigooView extends FrameView {
             removeGDocsDialog();
         } else {
             removeDialog();
-        } // TODO add your handling code here:
+        }
     }//GEN-LAST:event_deleteFile
 
     private void fileInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileInfo
@@ -1084,7 +1081,6 @@ public class FigooView extends FrameView {
             }
             this.usernameDoc = "";
             String pass = line;
-
             loginDocs(this.usernameDoc, pass);
 
         } catch (Exception ex) {
@@ -1159,13 +1155,9 @@ public class FigooView extends FrameView {
     private Desktop desktop;
     private JComboBox rootBox2;
     private JComboBox rootBox;
-    /**
-     *
-     */
     public boolean cont = false;
     private String usernamePicasa;
     private String usernameDoc;
-    //private String pass;
     private boolean logPicasa = false;
     private boolean logDoc = false;
     private PicasawebService picasa;
@@ -1181,7 +1173,6 @@ public class FigooView extends FrameView {
     public Icon getIcon(File file) {
         try {
             String type = fileChooser.getTypeDescription(file);
-
             if (icons.containsKey(type)) {
                 return icons.get(type);
             } else {
@@ -1275,7 +1266,7 @@ public class FigooView extends FrameView {
                         }
                     }
                 }
-                    refresh();
+                refresh();
             } catch (java.lang.NullPointerException n) {
                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error rename", n.getMessage());
                 ed.setVisible(true);
@@ -1310,9 +1301,6 @@ public class FigooView extends FrameView {
 
         }
         listDirectory(jLabel1.getText(), jList1, 1);
-    }
-
-    private void modifyDocs() {
     }
 
     private void copyDialog() {
@@ -1454,7 +1442,6 @@ public class FigooView extends FrameView {
                         MakeGFolderDialog md = new MakeGFolderDialog(this.getFrame(), true, docs, "root");
                         md.setVisible(true);
                     } else {
-
                         MakeGFolderDialog md = new MakeGFolderDialog(this.getFrame(), true, docs, currentGFolder);
                         md.setVisible(true);
                     }
@@ -1476,8 +1463,6 @@ public class FigooView extends FrameView {
         }
 
         if (active != null & active.getName().equalsIgnoreCase("1") && jLabel2.getText().startsWith("/docs")) {
-            System.err.println("TODO UPLOAD DOC");
-
             Object[] f = active.getSelectedValues();
             int[] indices = active.getSelectedIndices();
             if (indices.length > 0) {
@@ -1497,7 +1482,7 @@ public class FigooView extends FrameView {
                             }
 
                             try {
-                                UploadGDocsProgressDialog cd = new UploadGDocsProgressDialog(this.getFrame(), true, file, toRes,docs);
+                                UploadGDocsProgressDialog cd = new UploadGDocsProgressDialog(this.getFrame(), true, file, toRes, docs);
                                 cd.setVisible(true);
                             } catch (Exception n) {
                                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "showUploadDialog dialog", n.getMessage());
@@ -1520,7 +1505,7 @@ public class FigooView extends FrameView {
                                 toRes = currentGFolder;
                             }
                             try {
-                                UploadGDocsProgressDialog cd = new UploadGDocsProgressDialog(this.getFrame(), true, file, toRes,docs);
+                                UploadGDocsProgressDialog cd = new UploadGDocsProgressDialog(this.getFrame(), true, file, toRes, docs);
                                 cd.setVisible(true);
                             } catch (Exception n) {
                                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "showUploadDialog dialog", n.getMessage());
@@ -1744,7 +1729,6 @@ public class FigooView extends FrameView {
             if (jLabel2.getText().startsWith("/picasa")) {
                 listPicasa(jList2, 0);
             } else {
-
                 try {
                     docsStructure = FigooDocsClient.getStructure(docs);
                     listDocs(jList2, 0);
@@ -1763,7 +1747,6 @@ public class FigooView extends FrameView {
     private void listPicasa(JList list, int left) {
         try {
             jButton11.setEnabled(false);
-            System.out.println("listing picasa");
             ArrayList<String> titles = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, this.usernamePicasa);
             ArrayList<String> ids = FigooPicasaClient.getAllPicasaAlbumID(picasa, this.usernamePicasa);
             list = new JList();
@@ -1916,7 +1899,6 @@ public class FigooView extends FrameView {
                         JPanel dir = (JPanel) lm.getElementAt(indices[i]);
                         lis.ensureIndexIsVisible(indices[i]);
                         String p = dir.getName();
-                        System.out.println("LETS ROCK");
                         DownloadPicasaDialog dp = new DownloadPicasaDialog(this, getFrame(), true, jLabel1.getText(), size, picasa, usernamePicasa, p, true);
                         dp.setVisible(true);
                     }
@@ -2186,7 +2168,6 @@ public class FigooView extends FrameView {
         try {
             org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(FigooView.class);
             jButton11.setEnabled(false);
-            System.out.println("listing docs");
             ArrayList<DocumentListEntry> files = FigooDocsClient.getRootContent(docs);
             list = new JList();
             list.setName(left + "");
@@ -2338,7 +2319,6 @@ public class FigooView extends FrameView {
         try {
             org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(FigooView.class);
             jButton11.setEnabled(false);
-            System.out.println("listing docs");
             this.currentGFolder = resourceID;
             ArrayList<DocumentListEntry> files = FigooDocsClient.getFolderContent(resourceID, docs);
             list = new JList();

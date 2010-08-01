@@ -182,7 +182,6 @@ public class DocLogin extends javax.swing.JDialog {
             }
             String p = sb.toString();
           this.f.loginDocs(u, p);
-          //  this.f.googleInit();
             this.setVisible(false);
         }
     }//GEN-LAST:event_loginAction

@@ -21,8 +21,6 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
@@ -61,10 +59,7 @@ public class DownloadPicasaDialog extends javax.swing.JDialog {
                 jProgressBar2.setMinimum(0);
                 jProgressBar2.setMaximum(photos);
 
-
-
                 task = new DownloadAlbumPicasaTask(username, albumID, picasa, size, to, this);
-                //task.addPropertyChangeListener(((JButton)evt.getSource()).getPropertyChangeListeners()[0]);
                 task.addPropertyChangeListener(new PropertyChangeListener() {
 
                     @Override
@@ -78,19 +73,11 @@ public class DownloadPicasaDialog extends javax.swing.JDialog {
 
             }
 
-        } catch (MalformedURLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "DownloadPicasaDialog error", ex.getMessage());
             ed.setVisible(true);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "DownloadPicasaDialog error", ex.getMessage());
-            ed.setVisible(true);
-        } catch (ServiceException ex) {
-            ex.printStackTrace();
-            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "DownloadPicasaDialog error", ex.getMessage());
-            ed.setVisible(true);
-        }
+        } 
     }
 
     DownloadPicasaDialog(FigooView fg, JFrame parent, boolean modal, String text, String size, PicasawebService picasa, String username, ArrayList<String> todo, boolean album) {
@@ -111,7 +98,6 @@ public class DownloadPicasaDialog extends javax.swing.JDialog {
             jProgressBar2.setMaximum(todo.size());
 
             task = new DownloadAlbumPicasaTask(username, picasa, size, text, this, todo);
-            //task.addPropertyChangeListener(((JButton)evt.getSource()).getPropertyChangeListeners()[0]);
             task.addPropertyChangeListener(new PropertyChangeListener() {
 
                 @Override

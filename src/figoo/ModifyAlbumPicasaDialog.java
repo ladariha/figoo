@@ -19,9 +19,6 @@ import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JFrame;
 
 /**
  *
@@ -242,7 +239,7 @@ public class ModifyAlbumPicasaDialog extends javax.swing.JDialog {
             d.setHours(10);
             d.setMinutes(0);
             Date dd = album.getDate();
-            
+
             dd.setDate(d.getDate());
             dd.setMonth(d.getMonth());
             dd.setYear(d.getYear());
@@ -266,8 +263,6 @@ public class ModifyAlbumPicasaDialog extends javax.swing.JDialog {
         } catch (ServiceException ex) {
             ex.printStackTrace();
         }
-
-
     }//GEN-LAST:event_saveModifyAction
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

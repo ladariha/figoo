@@ -4,6 +4,7 @@ import com.google.gdata.client.photos.PicasawebService;
 import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.util.ServiceException;
 import figoo.DownloadPicasaDialog;
+import figoo.ErrorDialog;
 import figoo.google.FigooPicasaClient;
 import java.awt.Toolkit;
 import java.io.IOException;
@@ -146,12 +147,10 @@ public class DownloadAlbumPicasaTask extends SwingWorker<Void, Void> {
                 progress = progress + 1;
                 setProgress(progress);
             }
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(DownloadAlbumPicasaTask.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ServiceException ex) {
-            Logger.getLogger(DownloadAlbumPicasaTask.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(DownloadAlbumPicasaTask.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "google init ", ex.getMessage());
+            ed.setVisible(true);
         }
     }
 

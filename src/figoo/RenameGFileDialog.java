@@ -11,9 +11,7 @@
 package figoo;
 
 import com.google.gdata.client.docs.DocsService;
-import com.google.gdata.client.photos.PicasawebService;
 import figoo.google.FigooDocsClient;
-import figoo.google.FigooPicasaClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import javax.swing.JFrame;
@@ -138,8 +136,6 @@ public class RenameGFileDialog extends javax.swing.JDialog {
                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on RenameDialog", ex.getMessage());
                 ed.setVisible(true);
             }
-
-
         }
         this.setVisible(false);
     }//GEN-LAST:event_rename

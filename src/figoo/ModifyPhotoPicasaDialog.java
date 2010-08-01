@@ -12,17 +12,12 @@ package figoo;
 
 import com.google.gdata.client.photos.PicasawebService;
 import com.google.gdata.util.ServiceException;
-import figoo.classes.AlbumInfo;
 import figoo.classes.PhotoInfo;
 import figoo.google.FigooPicasaClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JFrame;
 
 /**
  *
@@ -200,7 +195,6 @@ public class ModifyPhotoPicasaDialog extends javax.swing.JDialog {
 
     private void saveModifyAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveModifyAction
         try {
-
             this.pi.setDesc(jTextArea2.getText());
             this.pi.setTags(jTextArea1.getText());
             FigooPicasaClient.updatePhoto(picasa, username, pi);
@@ -213,8 +207,6 @@ public class ModifyPhotoPicasaDialog extends javax.swing.JDialog {
         } catch (ServiceException ex) {
             ex.printStackTrace();
         }
-
-
     }//GEN-LAST:event_saveModifyAction
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

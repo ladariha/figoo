@@ -12,16 +12,11 @@ package figoo;
 
 import figoo.fileManager.UploadGDocsTask;
 import com.google.gdata.client.docs.DocsService;
-import com.google.gdata.client.photos.PicasawebService;
-import figoo.fileManager.FileManager;
-import figoo.fileManager.UploadPicasaTask;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.util.ArrayList;
 
 /**
  *

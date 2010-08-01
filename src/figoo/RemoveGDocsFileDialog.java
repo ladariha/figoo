@@ -11,9 +11,7 @@
 package figoo;
 
 import com.google.gdata.client.docs.DocsService;
-import com.google.gdata.client.photos.PicasawebService;
 import figoo.fileManager.RemoveGDocsFileTask;
-import figoo.fileManager.RemovePicasaFileTask;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
@@ -39,8 +37,6 @@ public class RemoveGDocsFileDialog extends javax.swing.JDialog {
 
         jProgressBar1.setIndeterminate(true);
         task = new RemoveGDocsFileTask(this, resourceId, docs, trash);
-
-        //task.addPropertyChangeListener(((JButton)evt.getSource()).getPropertyChangeListeners()[0]);
         task.addPropertyChangeListener(
                 new PropertyChangeListener() {
 

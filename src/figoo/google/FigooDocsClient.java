@@ -16,6 +16,7 @@ import com.google.gdata.data.docs.FolderEntry;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import figoo.DownloadSingleGDocDialog;
+import figoo.ErrorDialog;
 import figoo.fileManager.FileManager;
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +25,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import javax.activation.MimetypesFileTypeMap;
 
 /**
  *
@@ -40,9 +40,9 @@ public class FigooDocsClient {
     private static final String PRE_NEW_BASE_URL = "https://docs.google.com/feeds/download/presentations/export/";
 
     /**
-     *
-     * @param username
-     * @param password
+     * Returns instance of DocsService with given credentials
+     * @param username full username (wiht @gmail.com)
+     * @param password password
      * @return
      * @throws AuthenticationException
      */
@@ -53,9 +53,9 @@ public class FigooDocsClient {
     }
 
     /**
-     *
-     * @param u
-     * @param p
+     *  Returns instance of DocsService with given credentials
+     * @param u  full username (wiht @gmail.com)
+     * @param p password
      * @return
      * @throws AuthenticationException
      */
@@ -66,7 +66,7 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Returns content of root folder in Google Documents
      * @param client
      * @return
      * @throws MalformedURLException
@@ -131,8 +131,8 @@ public class FigooDocsClient {
     }
 
     /**
-     *
-     * @param resourceID
+     * Returns content of folder specified by resourceID
+     * @param resourceID id of folder to be listed
      * @param client
      * @return
      * @throws MalformedURLException
@@ -170,7 +170,7 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Return root folder structure as a HashMap where keys are folder's resource IDs and values are parent folder's resource ID
      * @param client
      * @return
      * @throws MalformedURLException
@@ -209,19 +209,12 @@ public class FigooDocsClient {
                 }
             }
         }
-//        Set<String> keys = struct.keySet();
-//
-//        Iterator<String> it = keys.iterator();
-//        while (it.hasNext()) {
-//            System.out.println("KLIC   " + it.next());
-//        }
         return struct;
-
     }
 
     /**
-     *
-     * @param resourceID
+     * Return  folder structure as a HashMap where keys are folder's resource IDs and values are parent folder's resource ID
+     * @param resourceID id of folder to be searched
      * @param client
      * @return
      * @throws MalformedURLException
@@ -263,7 +256,7 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Returns file type of give file
      * @param docs
      * @param resourceID
      * @return
@@ -278,7 +271,7 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Returns file name of give file
      * @param resourceID
      * @param docs
      * @return
@@ -293,12 +286,12 @@ public class FigooDocsClient {
     }
 
     /**
-     *
-     * @param resourceID
+     * Downloads file
+     * @param resourceID  file to be downloaded
      * @param docs
-     * @param format
-     * @param to
-     * @param docType
+     * @param format export format (i.e. pdf, doc...)
+     * @param to target folder
+     * @param docType file type (folder, file, document, presentation...)
      * @param spread
      * @throws MalformedURLException
      * @throws IOException
@@ -312,7 +305,6 @@ public class FigooDocsClient {
         //      System.out.println("URI " + mc.getUri());
         String docId = resourceID.substring(resourceID.lastIndexOf(":") + 1);
         String exportUrl = "";
-
         String filename = FigooDocsClient.getFileName(docId, docs);
         filename = filename + "." + format;
         to = to + System.getProperty("file.separator") + filename;
@@ -349,12 +341,12 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Download pdf file
      * @param resourceID
      * @param docs
-     * @param format
-     * @param to
-     * @param docType
+     * @param format useless parameter
+     * @param to target folder
+     * @param docType useless parameter
      * @throws MalformedURLException
      * @throws IOException
      * @throws ServiceException
@@ -372,12 +364,12 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Downloads common file
      * @param resourceID
      * @param docs
-     * @param format
-     * @param to
-     * @param docType
+     * @param format useless parameter
+     * @param to target folder
+     * @param docType useless parameter
      * @throws MalformedURLException
      * @throws IOException
      * @throws ServiceException
@@ -389,7 +381,6 @@ public class FigooDocsClient {
         String exportUrl = mc.getUri();
         String docId = resourceID.substring(resourceID.lastIndexOf(":") + 1);
         String filename = FigooDocsClient.getFileName(docId, docs);
-        // filename = filename + "."+filename.substring(filename.lastIndexOf(".")+1);
         to = to + System.getProperty("file.separator") + filename;
         FileManager.downloadFile(exportUrl, to, docs);
     }
@@ -443,13 +434,13 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Downloads folders recursively
      * @param resourceID
      * @param docs
      * @param spread
-     * @param to
-     * @param format
-     * @param docType
+     * @param to target folder
+     * @param format export format
+     * @param docType file type (document, folder...)
      * @param dp
      * @throws MalformedURLException
      * @throws IOException
@@ -490,18 +481,20 @@ public class FigooDocsClient {
                             FigooDocsClient.downloadFile(entry.getResourceId(), docs, presentation, folder.getAbsolutePath(), type, spread);
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "recursiveDownload", ex.getMessage());
+                    ed.setVisible(true);
                 }
             }
         }
     }
 
     /**
-     *
+     * Deletes file
      * @param docs
      * @param resourceId
-     * @param trash
+     * @param trash true if move file to trash, false if delete file pernamently
      * @throws MalformedURLException
      * @throws IOException
      * @throws ServiceException
@@ -517,10 +510,10 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Renames file
      * @param docs
      * @param resourceID
-     * @param text
+     * @param text new file name
      * @throws MalformedURLException
      * @throws IOException
      * @throws ServiceException
@@ -533,10 +526,10 @@ public class FigooDocsClient {
     }
 
     /**
-     * 
+     * Creates folder
      * @param docs
-     * @param name
-     * @param parent
+     * @param name folder name
+     * @param parent parent folder
      * @throws MalformedURLException
      * @throws IOException
      * @throws ServiceException
@@ -559,7 +552,7 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Creates new folder and returns its resource ID
      * @param docs
      * @param name
      * @param parent
@@ -572,7 +565,6 @@ public class FigooDocsClient {
         DocumentListEntry newEntry = new FolderEntry();
         newEntry.setTitle(new PlainTextConstruct(name));
         URL feedUrl = new URL("https://docs.google.com/feeds/default/private/full/");
-        System.out.println("ppp:.:: " + parent);
         if (!parent.equals("root")) {
             URL url = new URL("https://docs.google.com/feeds/default/private/full/" + parent);
             DocumentListEntry destFolderEntry = docs.getEntry(url, DocumentListEntry.class);
@@ -587,7 +579,7 @@ public class FigooDocsClient {
     }
 
     /**
-     *
+     * Upload file to Google Documents
      * @param file
      * @param from
      * @param toResourceId
@@ -604,31 +596,19 @@ public class FigooDocsClient {
             String destFolderUrl = ((MediaContent) folderEntry.getContent()).getUri();
             DocumentListEntry newDocument = new DocumentListEntry();
             String mimeType = DocumentListEntry.MediaType.fromFileName(file.getName()).getMimeType();
-            System.out.println("MIME " + mimeType);
-
-            String m = new MimetypesFileTypeMap().getContentType(file);
-
-
             newDocument.setFile(file, mimeType);
-            //newDocument.setFile(file, m);
             String title = file.getName().substring(0, file.getName().lastIndexOf("."));
             newDocument.setTitle(new PlainTextConstruct(title));
             URL u = new URL(destFolderUrl);
             docs.insert(u, newDocument);
         } else {
-            URL url = new URL("https://docs.google.com/feeds/default/private/full/" );
+            URL url = new URL("https://docs.google.com/feeds/default/private/full/");
             DocumentListEntry newDocument = new DocumentListEntry();
             String mimeType = DocumentListEntry.MediaType.fromFileName(file.getName()).getMimeType();
-            String m = new MimetypesFileTypeMap().getContentType(file);
-
-            System.out.println("MIME " + mimeType);
             newDocument.setFile(file, mimeType);
-            //newDocument.setFile(file, m);
             String title = file.getName().substring(0, file.getName().lastIndexOf("."));
             newDocument.setTitle(new PlainTextConstruct(title));
             docs.insert(url, newDocument);
         }
-
-
     }
 }

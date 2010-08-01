@@ -6,11 +6,8 @@ import figoo.ErrorDialog;
 import figoo.RemovePicasaDialog;
 import figoo.google.FigooPicasaClient;
 import java.awt.Toolkit;
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 
 /**

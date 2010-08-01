@@ -12,7 +12,6 @@ package figoo;
 
 import com.google.gdata.client.docs.DocsService;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import com.google.gdata.util.ServiceException;
 import figoo.fileManager.DownloadFolderGDocTask;
 import figoo.fileManager.DownloadSingleGDocTask;
 import figoo.google.FigooDocsClient;
@@ -20,10 +19,6 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -38,20 +33,20 @@ public class DownloadSingleGDocDialog extends javax.swing.JDialog {
             this.resourceID = resourceID;
             this.client = docs;
             initComponents();
-                  Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-        int w = this.getSize().width;
-        int h = this.getSize().height;
-        int left = (d.width - w) / 2;
-        int top = (d.height - h) / 2;
-        this.setLocation(left, top);
+            Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+            int w = this.getSize().width;
+            int h = this.getSize().height;
+            int left = (d.width - w) / 2;
+            int top = (d.height - h) / 2;
+            this.setLocation(left, top);
             this.spread = spread;
             String type = FigooDocsClient.getFileType(docs, resourceID);
             String name = FigooDocsClient.getFileName(resourceID, docs);
             jLabel4.setText(name);
-            System.out.println("TYPE " + type);
+
             this.type = type;
             if (type.equals("folder")) {
-                     jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(FOLDERS_FORMATS));
+                jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(FOLDERS_FORMATS));
             } else if (type.equals("document")) {
                 jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(DOCUMENT_FORMATS));
             } else if (type.equals("presentation")) {
@@ -60,17 +55,14 @@ public class DownloadSingleGDocDialog extends javax.swing.JDialog {
                 jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(SPREADSHEETS_FORMATS));
             } else if (type.equals("file")) {
                 jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(NATIVE_FORMATS));
-            }else if(type.equals("pdf")){
-              jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(PDF_FORMAT));
+            } else if (type.equals("pdf")) {
+                jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(PDF_FORMAT));
             }
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(DownloadSingleGDocDialog.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(DownloadSingleGDocDialog.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ServiceException ex) {
-            Logger.getLogger(DownloadSingleGDocDialog.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "DownloadSingleGDocDialog ", ex.getMessage());
+            ed.setVisible(true);
         }
-
     }
 
     /** This method is called from within the constructor to
@@ -208,10 +200,8 @@ public class DownloadSingleGDocDialog extends javax.swing.JDialog {
 
         String format = (String) jComboBox1.getSelectedItem();
         if (!type.equals("folder")) {
-            System.out.println("FORMAT "+type);
             getjProgressBar1().setIndeterminate(true);
             task = new DownloadSingleGDocTask(resourceID, this.client, format, to, this, type, this.spread);
-            //task.addPropertyChangeListener(((JButton)evt.getSource()).getPropertyChangeListeners()[0]);
             task.addPropertyChangeListener(new PropertyChangeListener() {
 
                 @Override
@@ -221,11 +211,11 @@ public class DownloadSingleGDocDialog extends javax.swing.JDialog {
                     }
                 }
             });
+
             task.execute();
         } else if (type.equals("folder")) {
             getjProgressBar1().setIndeterminate(true);
             task2 = new DownloadFolderGDocTask(resourceID, this.client, format, to, this, type, this.spread);
-            //task.addPropertyChangeListener(((JButton)evt.getSource()).getPropertyChangeListeners()[0]);
             task2.addPropertyChangeListener(new PropertyChangeListener() {
 
                 @Override
