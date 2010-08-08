@@ -1,6 +1,9 @@
 #labels Featured
 = Changelog =
 
+=== v2.0.2 - August 7, 2010 ===
+ * Added missing library for Picasa and Google Documents
+
 === v2.0.1 - August 1, 2010 ===
  * minor fixes
 
