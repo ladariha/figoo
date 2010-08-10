@@ -1,6 +1,6 @@
 #labels Featured
 = Changelog =
-=== v2.0.2 - August 10, 2010 ===
+=== v2.1.0 - August 10, 2010 ===
  * Added Thumbmails - right click on pdf/jpg/png/gif file, select properties and card Thumbmails
 
 === v2.0.2 - August 7, 2010 ===
