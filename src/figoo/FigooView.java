@@ -350,7 +350,7 @@ public class FigooView extends FrameView {
                 al.add(roots[i]);
             }
             if (logPicasa) {
-                al.add("Picasa");
+                al.add("/picasa");
             }
             if (logDoc) {
                 al.add("GDocs");
@@ -1745,6 +1745,7 @@ public class FigooView extends FrameView {
     }
 
     private void listPicasa(JList list, int left) {
+        System.out.println("listing picasa");
         try {
             jButton11.setEnabled(false);
             ArrayList<String> titles = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, this.usernamePicasa);
@@ -1766,6 +1767,8 @@ public class FigooView extends FrameView {
 
             if (titles != null && ids != null) {
 
+                System.out.println("P1 "+titles.size());
+                System.out.println("P2 "+ids.size());
                 Vector pole = new Vector();
                 Vector pole2 = new Vector();
 
@@ -1826,6 +1829,7 @@ public class FigooView extends FrameView {
                 File dir = new File(System.getProperty("user.home"));
 
                 for (int i = 0; i < titles.size(); i++) {
+                    System.out.println(">>>   "+ids.get(i));
                     p = new JPanel();
                     p.setName(ids.get(i));
                     p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));

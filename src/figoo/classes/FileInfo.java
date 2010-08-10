@@ -22,6 +22,8 @@ public class FileInfo {
     private boolean canWrite;
     private boolean canExecute;
     private String hash;
+    private String hash2;
+    private String mimeType;
 
     /**
      * @return the size
@@ -189,5 +191,32 @@ public class FileInfo {
      */
     public void setHash(String hash) {
         this.hash = hash;
+    }
+        /**
+     * @return the hash
+     */
+    public String getHash2() {
+        return hash2;
+    }
+
+    /**
+     * @param hash the hash to set
+     */
+    public void setHash2(String hash) {
+        this.hash2 = hash;
+    }
+
+    /**
+     * @return the mimeType
+     */
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    /**
+     * @param mimeType the mimeType to set
+     */
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 }

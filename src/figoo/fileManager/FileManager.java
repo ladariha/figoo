@@ -119,7 +119,8 @@ public class FileManager {
             mb = mb.substring(0, mb.indexOf(".") + 3);
             fi.setSize(size / 1000 + "  kB (" + mb + " MB) in " + files + " files and " + folders + " folders");
         } else {
-            fi.setHash(getHashFromFile(f));
+            fi.setHash(getHashFromFile(f, "MD5"));
+            fi.setHash2(getHashFromFile(f, "SHA1"));
             String mb = (float) ((float) f.length() / (float) 1000000) + "000";
             mb = mb.substring(0, mb.indexOf(".") + 3);
             fi.setSize(f.length() / 1000 + "  kB (" + mb + " MB)");
@@ -138,6 +139,10 @@ public class FileManager {
         } catch (Exception s) {
         }
         fi.setType(filetype + ext);
+
+        String mime = new MimetypesFileTypeMap().getContentType(f);
+        mime = mime.trim();
+        fi.setMimeType(mime);
         return fi;
     }
 
@@ -168,9 +173,9 @@ public class FileManager {
      * @param file
      * @return
      */
-    private static String getHashFromFile(File file) {
+    private static String getHashFromFile(File file, String hashType) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
+            MessageDigest digest = MessageDigest.getInstance(hashType);
             FileInputStream fis = new FileInputStream(file);
             if (file.length() <= Integer.MAX_VALUE) {
                 int velikost = (int) file.length();
@@ -454,9 +459,9 @@ public class FileManager {
                 outStream.write(c);
             }
         } catch (Exception ex) {
-                 ex.printStackTrace();
-                ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "uploadFileFolder", ex.getMessage());
-                ed.setVisible(true);
+            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "uploadFileFolder", ex.getMessage());
+            ed.setVisible(true);
         } finally {
             if (inStream != null) {
                 inStream.close();
@@ -479,7 +484,7 @@ public class FileManager {
      * @throws ServiceException
      */
     public static void downloadFile(String exportUrl, String filepath, DocsService client, SpreadsheetService spread) throws IOException, MalformedURLException, ServiceException {
-       MediaContent mc = new MediaContent();
+        MediaContent mc = new MediaContent();
         mc.setUri(exportUrl);
 
         MediaSource ms = client.getMedia(mc);

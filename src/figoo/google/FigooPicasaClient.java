@@ -53,12 +53,15 @@ public class FigooPicasaClient {
      */
     public static ArrayList<String> getAllPicasaAlbumTitle(PicasawebService picasa, String username) throws MalformedURLException, IOException, ServiceException {
         URL feedUrl = new URL("http://picasaweb.google.com/data/feed/api/user/" + username + "?kind=album");
+        System.out.println("USERNAME "+username);
         UserFeed myUserFeed = picasa.getFeed(feedUrl, UserFeed.class);
         List<AlbumEntry> albums = myUserFeed.getAlbumEntries();
+        System.out.println("VEL "+albums.size());
         AlbumEntry myAlbum;
         ArrayList<String> titles = new ArrayList<String>();
         for (int i = 0; i < albums.size(); i++) {
             myAlbum = albums.get(i);
+            System.out.println(">> "+myAlbum.getTitle().getPlainText());
             titles.add(myAlbum.getTitle().getPlainText());//.put(myAlbum.getId(), myAlbum.getTitle().getPlainText());
         }
         return titles;
