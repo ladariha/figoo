@@ -51,6 +51,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import javax.activation.MimetypesFileTypeMap;
 import javax.swing.ComboBoxModel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -1767,8 +1768,8 @@ public class FigooView extends FrameView {
 
             if (titles != null && ids != null) {
 
-                System.out.println("P1 "+titles.size());
-                System.out.println("P2 "+ids.size());
+                System.out.println("P1 " + titles.size());
+                System.out.println("P2 " + ids.size());
                 Vector pole = new Vector();
                 Vector pole2 = new Vector();
 
@@ -1829,7 +1830,7 @@ public class FigooView extends FrameView {
                 File dir = new File(System.getProperty("user.home"));
 
                 for (int i = 0; i < titles.size(); i++) {
-                    System.out.println(">>>   "+ids.get(i));
+                    System.out.println(">>>   " + ids.get(i));
                     p = new JPanel();
                     p.setName(ids.get(i));
                     p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
@@ -2534,7 +2535,7 @@ public class FigooView extends FrameView {
         @Override
         public void mouseClicked(MouseEvent e) {
 
-            if (e.getClickCount() == 2) {
+            if (e.getClickCount() == 2 && e.getButton() == 1) {
                 if (logPicasa && list.getName().equalsIgnoreCase("0") && jLabel2.getText().startsWith("/picasa")) {
                     int index = list.locationToIndex(e.getPoint());
                     ListModel lm = list.getModel();
@@ -2598,6 +2599,14 @@ public class FigooView extends FrameView {
                 }
             } else {
                 active = list;
+                if (active.getName().equals("1") || (active.getName().equals("0") && !jLabel2.getText().startsWith("/docs") && !jLabel2.getText().startsWith("/picasa"))) {
+                    if (e.getButton() == 2) {
+                        int index = list.locationToIndex(e.getPoint());
+                        ListModel lm = list.getModel();
+                        JPanel dir = (JPanel) lm.getElementAt(index);
+                        showThumbmail(dir.getName(), list, e);
+                    }
+                }
             }
         }
 
@@ -2617,6 +2626,26 @@ public class FigooView extends FrameView {
                     ex.printStackTrace();
                 }
             }
+        }
+    }
+
+    private void showThumbmail(String name, JList list, MouseEvent e) {
+        File file = new File(name);
+        try {
+            String type = " (*" + file.getName().substring(file.getName().lastIndexOf(".")) + ")";
+            if (type.contains(".pdf")) {
+                ThumbmailDialog td = new ThumbmailDialog(getFrame(), true);
+                td.doPdfThumbmail(file);
+                td.setVisible(true);
+            } else if (type.contains(".jpg") || type.contains(".jpeg") || type.contains(".gif") || type.contains(".png")) {
+                ThumbmailDialog td = new ThumbmailDialog(getFrame(), true);
+                td.doImageThumbmail(file);
+                td.setVisible(true);
+            } else {
+                propertiesDialog();
+            }
+        } catch (Exception ex) {
+            propertiesDialog();
         }
     }
 }
