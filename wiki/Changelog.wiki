@@ -1,7 +1,12 @@
 #labels Featured
 = Changelog =
+
+=== v2.1.5 - August 10, 2010 ===
+ * Improved Thumbmails and properties dialog - use middle/wheel mouse button to show thumbmail (for pdf, jpg, png, gif) or to show properties (other filetypes and directories)
+
 === v2.1.0 - August 10, 2010 ===
  * Added Thumbmails - right click on pdf/jpg/png/gif file, select properties and card Thumbmails
+ * Added SHA-1 hash for files
 
 === v2.0.2 - August 7, 2010 ===
  * Added missing library for Picasa and Google Documents
