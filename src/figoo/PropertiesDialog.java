@@ -70,11 +70,11 @@ public class PropertiesDialog extends javax.swing.JDialog {
         jTextField1.setText(fi.getHash());
         jTextField2.setText(fi.getHash2());
         jCheckBox3.setSelected(fi.isCanExecute());
-
+        fi.setType(fi.getType().toLowerCase());
         if (fi.getType().contains(".pdf")) {
             doPdfThumbmail(fi);
-        }else if(fi.getType().contains(".jpg") || fi.getType().contains(".jpeg") || fi.getType().contains(".gif") || fi.getType().contains(".png")){
-        doImageThumbmail(fi);
+        } else if (fi.getType().contains(".jpg") || fi.getType().contains(".jpeg") || fi.getType().contains(".gif") || fi.getType().contains(".png")) {
+            doImageThumbmail(fi);
         }
 
     }

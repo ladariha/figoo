@@ -2633,6 +2633,7 @@ public class FigooView extends FrameView {
         File file = new File(name);
         try {
             String type = " (*" + file.getName().substring(file.getName().lastIndexOf(".")) + ")";
+            type = type.toLowerCase();
             if (type.contains(".pdf")) {
                 ThumbmailDialog td = new ThumbmailDialog(getFrame(), true);
                 td.doPdfThumbmail(file);
