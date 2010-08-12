@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -511,6 +514,56 @@ public class FileManager {
                 outStream.flush();
                 outStream.close();
             }
+        }
+    }
+
+    public static void makeZip(String pathFrom, String pathTo, String archiveName, int compression) throws FileNotFoundException, IOException {
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(pathTo + System.getProperty("file.separator") + archiveName + ".zip"));
+        zos.setLevel(compression);
+        zipChildrenFiles(zos, pathFrom, "");
+        zos.close();
+    }
+
+    private static void zipChildrenFiles(ZipOutputStream zos, String pathFrom, String prefix) throws IOException {
+
+        File f = new File(pathFrom);
+        File[] files = f.listFiles();
+        File tmp;
+        ZipEntry archiveEntry;
+        if (f.isDirectory()) {
+            archiveEntry = new ZipEntry(prefix + f.getName() + System.getProperty("file.separator"));
+            prefix = prefix + f.getName() + System.getProperty("file.separator");
+            zos.putNextEntry(archiveEntry);
+            if (files != null) {
+                for (int i = 0; i < files.length; i++) {
+                    tmp = files[i];
+                    if (tmp.isDirectory()) {
+                        zipChildrenFiles(zos, tmp.getAbsolutePath(), prefix);
+                    } else if (tmp.isFile()) {
+                        byte[] buffer = new byte[1024];
+                        int added = 0;
+                        archiveEntry = new ZipEntry(prefix + tmp.getName());
+                        zos.putNextEntry(archiveEntry);
+                        FileInputStream fis = new FileInputStream(tmp);
+                        while ((added = fis.read(buffer)) != -1) {
+                            zos.write(buffer, 0, added);
+                        }
+                        fis.close();
+                    }
+                }
+            }
+
+        } else if (f.isFile()) {
+            //byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[1024];
+            int added = 0;
+            archiveEntry = new ZipEntry(prefix + f.getName());
+            zos.putNextEntry(archiveEntry);
+            FileInputStream fis = new FileInputStream(f);
+            while ((added = fis.read(buffer)) != -1) {
+                zos.write(buffer, 0, added);
+            }
+            fis.close();
         }
     }
 }

@@ -521,10 +521,14 @@ public class FigooView extends FrameView {
         });
 
         jButton4.setText(resourceMap.getString("jButton4.text")); // NOI18N
-        jButton4.setEnabled(false);
         jButton4.setMargin(new java.awt.Insets(2, 5, 2, 5));
         jButton4.setName("jButton4"); // NOI18N
         jButton4.setPreferredSize(new java.awt.Dimension(100, 23));
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                archiveAction(evt);
+            }
+        });
 
         jButton5.setText(resourceMap.getString("jButton5.text")); // NOI18N
         jButton5.setMargin(new java.awt.Insets(2, 5, 2, 5));
@@ -1069,6 +1073,10 @@ public class FigooView extends FrameView {
         refresh();
     }//GEN-LAST:event_jButton16logoutPicasa
 
+    private void archiveAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_archiveAction
+      archiveDialog();
+    }//GEN-LAST:event_archiveAction
+
     public void googleInit() {
         FileInputStream fis = null;
         try {
@@ -1190,6 +1198,21 @@ public class FigooView extends FrameView {
             ed.setVisible(true);
         }
         return null;
+    }
+
+    private void archiveDialog() {
+        if (!jLabel2.getText().startsWith("/docs") && !jLabel2.getText().startsWith("/picasa")) {
+            JPanel p = (JPanel) active.getSelectedValue();
+            String from = p.getName();
+            String to = "";
+            if (active.getName().equalsIgnoreCase("1")) {
+                to = jLabel2.getText();
+            } else {
+                to = jLabel1.getText();
+            }
+            ArchiveFileDialog dd = new ArchiveFileDialog(this,this.getFrame(), true, from, to);
+            dd.setVisible(true);
+        }
     }
 
     private void renameDialog() {
@@ -1685,7 +1708,7 @@ public class FigooView extends FrameView {
                             p = (JPanel) f[i];
                             String file = p.getName();
                             try {
-                                PropertiesDialog cd = new PropertiesDialog(this.getFrame(), true, file, this);
+                                PropertiesDialog cd = new PropertiesDialog(this.getFrame(), false, file, this);
                                 cd.setVisible(true);
                             } catch (Exception n) {
                                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
@@ -1702,7 +1725,7 @@ public class FigooView extends FrameView {
                             p = (JPanel) f[i];
                             String file = p.getName();
                             try {
-                                PropertiesDialog cd = new PropertiesDialog(this.getFrame(), true, file, this);
+                                PropertiesDialog cd = new PropertiesDialog(this.getFrame(), false, file, this);
                                 cd.setVisible(true);
                             } catch (Exception n) {
                                 ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "properties dialog", n.getMessage());
@@ -1746,7 +1769,6 @@ public class FigooView extends FrameView {
     }
 
     private void listPicasa(JList list, int left) {
-        System.out.println("listing picasa");
         try {
             jButton11.setEnabled(false);
             ArrayList<String> titles = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, this.usernamePicasa);
@@ -1830,7 +1852,6 @@ public class FigooView extends FrameView {
                 File dir = new File(System.getProperty("user.home"));
 
                 for (int i = 0; i < titles.size(); i++) {
-                    System.out.println(">>>   " + ids.get(i));
                     p = new JPanel();
                     p.setName(ids.get(i));
                     p.setLayout(new java.awt.FlowLayout(FlowLayout.LEFT));
@@ -2496,11 +2517,13 @@ public class FigooView extends FrameView {
             } else if (key.equalsIgnoreCase("F3")) {
                 makeDirDialog();
             } else if (key.equalsIgnoreCase("F4")) {
+                archiveDialog();
             } else if (key.equalsIgnoreCase("F5")) {
                 copyDialog();
             } else if (key.equalsIgnoreCase("F6")) {
                 moveDialog();
             } else if (key.equalsIgnoreCase("F7")) {
+
                 if (jLabel2.getText().startsWith("/docs")) {
                     removeGDocsDialog();
                 } else {
