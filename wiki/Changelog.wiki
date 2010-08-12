@@ -1,6 +1,9 @@
 #labels Featured
 = Changelog =
 
+=== v2.2.0 - August 12, 2010 ===
+ * Added support for making ZIP archives with custom level of compression
+
 === v2.1.5 - August 11, 2010 ===
  * Improved Thumbmails and properties dialog - use middle/wheel mouse button to show thumbmail (for pdf, jpg, png, gif) or to show properties (other filetypes and directories)
 
