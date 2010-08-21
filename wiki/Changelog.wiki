@@ -1,6 +1,12 @@
 #labels Featured
 = Changelog =
 
+=== v2.4.0 - August 21, 2010 ===
+ * Checking hash using clipboard or manually (in file properties)
+ * Structure function (for Picasa, Google Documents and local file system)
+   * Copy structure of files and directories to clipboard
+   * Save structure of files and directories to text file with custom depth of search
+
 === v2.3.0 - August 14, 2010 ===
  * Detailed info about files
    * ID3 tags - support for mp3, m4a, flac and ogg
