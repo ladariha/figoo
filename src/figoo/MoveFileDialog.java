@@ -10,7 +10,7 @@
  */
 package figoo;
 
-import figoo.fileManager.MoveTask;
+import figoo.tasks.MoveTask;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;

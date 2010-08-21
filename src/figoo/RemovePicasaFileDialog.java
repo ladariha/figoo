@@ -11,7 +11,7 @@
 package figoo;
 
 import com.google.gdata.client.photos.PicasawebService;
-import figoo.fileManager.RemovePicasaFileTask;
+import figoo.tasks.RemovePicasaFileTask;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;

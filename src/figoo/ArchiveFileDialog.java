@@ -10,7 +10,7 @@
  */
 package figoo;
 
-import figoo.fileManager.ArchiveTask;
+import figoo.tasks.ArchiveTask;
 import figoo.fileManager.FileManager;
 import java.awt.Dimension;
 import java.awt.Toolkit;

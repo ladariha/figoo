@@ -12,8 +12,8 @@ package figoo;
 
 import com.google.gdata.client.photos.PicasawebService;
 import figoo.fileManager.FileManager;
-import figoo.fileManager.MoveTask;
-import figoo.fileManager.UploadPicasaTask;
+import figoo.tasks.MoveTask;
+import figoo.tasks.UploadPicasaTask;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Toolkit;

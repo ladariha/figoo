@@ -10,7 +10,7 @@
  */
 package figoo;
 
-import figoo.fileManager.CopyTask;
+import figoo.tasks.CopyTask;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;

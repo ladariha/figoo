@@ -12,9 +12,9 @@ package figoo;
 
 import com.google.gdata.client.docs.DocsService;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import figoo.fileManager.DownloadFolderGDocTask;
-import figoo.fileManager.DownloadSingleGDocTask;
-import figoo.google.FigooDocsClient;
+import figoo.tasks.DownloadFolderGDocTask;
+import figoo.tasks.DownloadSingleGDocTask;
+import figoo.fileManager.FigooDocsClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;

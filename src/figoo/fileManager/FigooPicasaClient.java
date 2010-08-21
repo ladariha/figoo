@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package figoo.google;
+package figoo.fileManager;
 
 import com.google.gdata.client.photos.*;
 import com.google.gdata.data.*;
@@ -53,15 +53,13 @@ public class FigooPicasaClient {
      */
     public static ArrayList<String> getAllPicasaAlbumTitle(PicasawebService picasa, String username) throws MalformedURLException, IOException, ServiceException {
         URL feedUrl = new URL("http://picasaweb.google.com/data/feed/api/user/" + username + "?kind=album");
-        System.out.println("USERNAME "+username);
         UserFeed myUserFeed = picasa.getFeed(feedUrl, UserFeed.class);
         List<AlbumEntry> albums = myUserFeed.getAlbumEntries();
-        System.out.println("VEL "+albums.size());
+
         AlbumEntry myAlbum;
         ArrayList<String> titles = new ArrayList<String>();
         for (int i = 0; i < albums.size(); i++) {
             myAlbum = albums.get(i);
-            System.out.println(">> "+myAlbum.getTitle().getPlainText());
             titles.add(myAlbum.getTitle().getPlainText());//.put(myAlbum.getId(), myAlbum.getTitle().getPlainText());
         }
         return titles;
@@ -492,7 +490,6 @@ public class FigooPicasaClient {
                 photoid = photoid.replace(username.substring(0, username.indexOf("@")), username);
                 photoid = photoid.replace("/entry/", "/feed/");
                 URL feedUrl = new URL(photoid);
-                System.out.println("URL " + photoid);
                 for (int k = 0; k < tags.length; k++) {
                     TagEntry myTag = new TagEntry();
                     myTag.setTitle(new PlainTextConstruct(tags[k]));
@@ -571,5 +568,87 @@ public class FigooPicasaClient {
             }
         }
         throw new ServiceException("Selected album not found");
+    }
+
+    /**
+     * Returns structure in form of String for given folder
+     * @param dir folder's id (full URL) or just /picasa
+     * @param picasa
+     * @param username
+     * @return
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ServiceException
+     */
+    public static String structureToString(String dir, PicasawebService picasa, String username) throws MalformedURLException, IOException, ServiceException {
+
+        StringBuffer sb = new StringBuffer();
+        if (dir.equals("/picasa")) {
+            sb.append("Google Picasa" + System.getProperty("line.separator"));
+            ArrayList<String> list = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, username);
+            for (int i = 0; i < list.size(); i++) {
+                sb.append("   " + list.get(i));
+                sb.append(System.getProperty("line.separator"));
+            }
+            return sb.toString();
+        } else {
+            String title = FigooPicasaClient.getAlbumNameByID(picasa, dir, username);
+            ArrayList<String> list = FigooPicasaClient.listPicasaAlbumTitle(picasa, dir, username);
+            sb.append("Google Picasa/" + title + System.getProperty("line.separator"));
+            for (int i = 0; i < list.size(); i++) {
+                sb.append("   " + list.get(i));
+                sb.append(System.getProperty("line.separator"));
+            }
+            return sb.toString();
+        }
+    }
+
+    /**
+     * Returns structure of albums and images in picasa
+     * @param dir where to start (folder's id (full URL) or just picasa for root folder)
+     * @param depth depth of search (more then 1 is useless)
+     * @param indention text indention
+     * @param picasa instance of PicasawebService
+     * @param username Username to Picasa
+     * @return
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ServiceException
+     */
+    public static String structureToString(String dir, int depth, String indention, PicasawebService picasa, String username) throws MalformedURLException, IOException, ServiceException {
+
+        StringBuffer sb = new StringBuffer();
+        if (depth >= 0) {
+            indention = indention + "  ";
+            int newDepth = depth - 1;
+            String tt = "";
+            if (dir.equals("picasa")) {
+                sb.append("Google Picasa" + System.getProperty("line.separator"));
+                ArrayList<String> list = FigooPicasaClient.getAllPicasaAlbumTitle(picasa, username);
+                ArrayList<String> list2 = FigooPicasaClient.getAllPicasaAlbumID(picasa, username);
+                for (int i = 0; i < list.size(); i++) {
+                    sb.append(indention + list.get(i));
+                    sb.append(System.getProperty("line.separator"));
+                    if (depth > 0) {
+                        ArrayList<String> s = FigooPicasaClient.listPicasaAlbumTitle(picasa, list2.get(i), username);
+                        for (int j = 0; j < s.size(); j++) {
+                            sb.append("      ");
+                            sb.append(s.get(j) + System.getProperty("line.separator"));
+                        }
+                    }
+                }
+                return sb.toString();
+            } else {
+                String title = FigooPicasaClient.getAlbumNameByID(picasa, dir, username);
+                ArrayList<String> list = FigooPicasaClient.listPicasaAlbumTitle(picasa, dir, username);
+                sb.append("Google Picasa/" + title + System.getProperty("line.separator"));
+                for (int i = 0; i < list.size(); i++) {
+                    sb.append("   " + list.get(i));
+                    sb.append(System.getProperty("line.separator"));
+                }
+                return sb.toString();
+            }
+        }
+        return sb.toString();
     }
 }

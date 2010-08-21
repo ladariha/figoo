@@ -554,7 +554,6 @@ public class FileManager {
             }
 
         } else if (f.isFile()) {
-            //byte[] buffer = new byte[1024];
             byte[] buffer = new byte[1024];
             int added = 0;
             archiveEntry = new ZipEntry(prefix + f.getName());
@@ -565,6 +564,66 @@ public class FileManager {
             }
             fis.close();
         }
+    }
+
+    /**
+     * Returns structure of files and directories
+     * @param dir where to start
+     * @return
+     */
+    public static String structureToString(String dir) {
+        StringBuffer sb = new StringBuffer();
+        File directory = new File(dir);
+        File[] files = directory.listFiles();
+        sb.append(directory.getAbsolutePath() + System.getProperty("line.separator"));
+        for (int i = 0; i < files.length; i++) {
+            if (!files[i].isHidden()) {
+                if (files[i].isDirectory()) {
+                    sb.append("   <" + files[i].getName() + ">");
+                } else {
+                    sb.append("    " + files[i].getName() + "");
+                }
+                sb.append(System.getProperty("line.separator"));
+            }
+        }
+        return sb.toString();
+    }
+
+
+    /**
+     * Returns structure of files and directories with recursive search.
+     * @param dir where to start searching
+     * @param depth depth of search
+     * @param indention indention in txt file
+     * @param include whether include text header
+     * @return
+     */
+    public static String structureToString(String dir, int depth, String indention, boolean include) {
+        StringBuffer sb = new StringBuffer();
+
+        if (depth >= 0) {
+            File directory = new File(dir);
+            File[] files = directory.listFiles();
+            if(include){
+            sb.append(indention+"<" + directory.getAbsolutePath()+">" + System.getProperty("line.separator"));
+            }
+            indention = indention+"  ";
+            int newDepth = depth - 1;
+            for (int i = 0; i < files.length; i++) {
+                if (!files[i].isHidden()) {
+                    if (files[i].isDirectory()) {
+                        sb.append(indention+"<" + files[i].getName() + ">");
+                        sb.append(System.getProperty("line.separator"));
+                        String s = FileManager.structureToString(files[i].getAbsolutePath(), newDepth, indention, false);
+                        sb.append(s);
+                    } else {
+                        sb.append(indention + files[i].getName());
+                        sb.append(System.getProperty("line.separator"));
+                    }      
+                }
+            }
+        }
+       return sb.toString();
     }
 }
 

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package figoo.google;
+package figoo.fileManager;
 
 import com.google.gdata.client.DocumentQuery;
 import com.google.gdata.client.GoogleAuthTokenFactory.UserToken;
@@ -17,7 +17,6 @@ import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import figoo.DownloadSingleGDocDialog;
 import figoo.ErrorDialog;
-import figoo.fileManager.FileManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -589,7 +588,6 @@ public class FigooDocsClient {
      * @throws ServiceException
      */
     public static void uploadFile(File file, String from, String toResourceId, DocsService docs) throws MalformedURLException, IOException, ServiceException {
-
         if (!toResourceId.equals("root")) {
             URL url = new URL("https://docs.google.com/feeds/default/private/full/" + toResourceId);
             DocumentListEntry folderEntry = docs.getEntry(url, DocumentListEntry.class);
@@ -610,5 +608,91 @@ public class FigooDocsClient {
             newDocument.setTitle(new PlainTextConstruct(title));
             docs.insert(url, newDocument);
         }
+    }
+
+    /**
+     * Returns structure of folders and files in Google Documents
+     * @param dir  where to start (folder's id (full URL) or just docs for root folder)
+     * @param docs instance of DocsService
+     * @return
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ServiceException
+     */
+    public static String structureToString(String dir, DocsService docs) throws MalformedURLException, IOException, ServiceException {
+        StringBuffer sb = new StringBuffer();
+        if (dir.equals("/docs")) {
+            sb.append("Google Documents" + System.getProperty("line.separator"));
+            ArrayList<DocumentListEntry> list = FigooDocsClient.getRootContent(docs);
+            for (int i = 0; i < list.size(); i++) {
+                sb.append("   " + list.get(i).getTitle().getPlainText() + "   (" + list.get(i).getType() + ")");
+                sb.append(System.getProperty("line.separator"));
+            }
+            return sb.toString();
+        } else {
+            String title = FigooDocsClient.getFileName(dir, docs);
+            ArrayList<DocumentListEntry> list = FigooDocsClient.getFolderContent(dir, docs);
+            sb.append("Google Documents/" + title + System.getProperty("line.separator"));
+            for (int i = 0; i < list.size(); i++) {
+                sb.append("   " + list.get(i).getTitle().getPlainText() + "   (" + list.get(i).getType() + ")");
+                sb.append(System.getProperty("line.separator"));
+            }
+            return sb.toString();
+        }
+    }
+
+    /**
+     * Returns structure of folders and files in Google Documents
+     * @param dir  where to start (folder's id (full URL) or just docs for root folder)
+     * @param depth depth of search
+     * @param indention text indention
+     * @param include whether include text header
+     * @param docs instance of DocsService
+     * @return
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ServiceException
+     */
+    public static String structureToString(String dir, int depth, String indention, boolean include, DocsService docs) throws MalformedURLException, IOException, ServiceException {
+
+        StringBuffer sb = new StringBuffer();
+        if (depth >= 0) {
+            indention = indention + "  ";
+            int newDepth = depth - 1;
+            String tt = "";
+            if (dir.equals("docs")) {
+                sb.append("Google Documents" + System.getProperty("line.separator"));
+                ArrayList<DocumentListEntry> list = FigooDocsClient.getRootContent(docs);
+
+                for (int i = 0; i < list.size(); i++) {
+                    tt = list.get(i).getType();
+                    sb.append(indention + list.get(i).getTitle().getPlainText() + "   (" + tt + ")");
+                    sb.append(System.getProperty("line.separator"));
+                    if (tt.equals("folder")) {
+                        String s = FigooDocsClient.structureToString(list.get(i).getResourceId(), newDepth, indention, false, docs);
+                        sb.append(s);
+                    }
+                }
+                return sb.toString();
+            } else {
+                String title = FigooDocsClient.getFileName(dir, docs);
+                if (include) {
+                    sb.append("Google Documents/" + title + System.getProperty("line.separator"));
+                }
+
+                ArrayList<DocumentListEntry> list = FigooDocsClient.getFolderContent(dir, docs);
+                for (int i = 0; i < list.size(); i++) {
+                    tt = list.get(i).getType();
+                    sb.append(indention + list.get(i).getTitle().getPlainText() + "   (" + tt + ")");
+                    sb.append(System.getProperty("line.separator"));
+                    if (tt.equals("folder")) {
+                        String s = FigooDocsClient.structureToString(list.get(i).getResourceId(), newDepth, indention, false, docs);
+                        sb.append(s);
+                    }
+                }
+                return sb.toString();
+            }
+        }
+        return sb.toString();
     }
 }

@@ -11,7 +11,7 @@
 package figoo;
 
 import com.google.gdata.client.docs.DocsService;
-import figoo.google.FigooDocsClient;
+import figoo.fileManager.FigooDocsClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 

@@ -13,7 +13,7 @@ package figoo;
 import com.google.gdata.client.photos.PicasawebService;
 import com.google.gdata.util.ServiceException;
 import figoo.classes.PhotoInfo;
-import figoo.google.FigooPicasaClient;
+import figoo.fileManager.FigooPicasaClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.IOException;

@@ -12,8 +12,9 @@ import com.google.gdata.util.ServiceException;
 import figoo.classes.AlbumInfo;
 import figoo.classes.PhotoInfo;
 import figoo.classes.Session;
-import figoo.google.FigooDocsClient;
-import figoo.google.FigooPicasaClient;
+import figoo.fileManager.FileManager;
+import figoo.fileManager.FigooDocsClient;
+import figoo.fileManager.FigooPicasaClient;
 import figoo.guiClasses.ListRenderer;
 import java.awt.Component;
 import java.awt.FlowLayout;
@@ -46,12 +47,13 @@ import javax.swing.ListModel;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyListener;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import javax.activation.MimetypesFileTypeMap;
 import javax.swing.ComboBoxModel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -453,6 +455,8 @@ public class FigooView extends FrameView {
         jButton13 = new javax.swing.JButton();
         jButton15 = new javax.swing.JButton();
         jButton16 = new javax.swing.JButton();
+        jButton17 = new javax.swing.JButton();
+        jButton18 = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jPanel17 = new javax.swing.JPanel();
@@ -732,6 +736,34 @@ public class FigooView extends FrameView {
             }
         });
         jPanel8.add(jButton16);
+
+        jButton17.setBackground(resourceMap.getColor("jButton17.background")); // NOI18N
+        jButton17.setIcon(resourceMap.getIcon("jButton17.icon")); // NOI18N
+        jButton17.setToolTipText(resourceMap.getString("jButton17.toolTipText")); // NOI18N
+        jButton17.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton17.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton17.setName("jButton17"); // NOI18N
+        jButton17.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton17.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyListToClipboard(evt);
+            }
+        });
+        jPanel8.add(jButton17);
+
+        jButton18.setBackground(resourceMap.getColor("jButton18.background")); // NOI18N
+        jButton18.setIcon(resourceMap.getIcon("jButton18.icon")); // NOI18N
+        jButton18.setToolTipText(resourceMap.getString("jButton18.toolTipText")); // NOI18N
+        jButton18.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton18.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton18.setName("jButton18"); // NOI18N
+        jButton18.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton18.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyListToFile(evt);
+            }
+        });
+        jPanel8.add(jButton18);
 
         jPanel2.add(jPanel8);
 
@@ -1074,8 +1106,90 @@ public class FigooView extends FrameView {
     }//GEN-LAST:event_jButton16logoutPicasa
 
     private void archiveAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_archiveAction
-      archiveDialog();
+        archiveDialog();
     }//GEN-LAST:event_archiveAction
+
+    private void copyListToClipboard(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyListToClipboard
+        String dir = "";
+        String list = "";
+        if (active != null && active.getName().equals("1")) {
+            dir = jLabel1.getText();
+            list = FileManager.structureToString(dir);
+        } else {
+            if (jLabel2.getText().startsWith("/picasa")) {
+                try {
+                    if (jLabel2.getText().equals("/picasa")) {
+                        list = FigooPicasaClient.structureToString("/picasa", this.picasa, this.usernamePicasa);
+                    } else {
+                        list = FigooPicasaClient.structureToString(this.lastPicasaId, this.picasa, this.usernamePicasa);
+                    }
+                } catch (Exception ex) {
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Picasa to clipboard", ex.getMessage());
+                    ed.setVisible(true);
+                }
+            } else if (jLabel2.getText().startsWith("/docs")) {
+                try {
+                    if (jLabel2.getText().equals("/docs")) {
+                        list = FigooDocsClient.structureToString("/docs", this.docs);
+                    } else {
+                        list = FigooDocsClient.structureToString(this.currentGFolder, this.docs);
+                    }
+                } catch (Exception ex) {
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on GDocs to clipboard", ex.getMessage());
+                    ed.setVisible(true);
+                }
+            } else {
+                dir = jLabel2.getText();
+                list = FileManager.structureToString(dir);
+            }
+        }
+        StringSelection ss = new StringSelection(list);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
+
+    }//GEN-LAST:event_copyListToClipboard
+
+    private void copyListToFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyListToFile
+
+        String dir = "";
+
+        if (active != null && active.getName().equals("1")) {
+            dir = jLabel1.getText();
+            SaveStructureDialog sd = new SaveStructureDialog(getFrame(), false, 0, docs, picasa, this.usernamePicasa, dir);
+            sd.setVisible(true);
+        } else {
+            if (jLabel2.getText().startsWith("/picasa")) {
+                try {
+                    if (jLabel2.getText().equals("/picasa")) {
+                        SaveStructureDialog sd = new SaveStructureDialog(getFrame(), false, 2, docs, picasa, this.usernamePicasa, "picasa");
+                        sd.setVisible(true);
+                    } else {
+                        SaveStructureDialog sd = new SaveStructureDialog(getFrame(), false, 2, docs, picasa, this.usernamePicasa, this.lastPicasaId);
+                        sd.setVisible(true);
+                    }
+                } catch (Exception ex) {
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Picasa to file", ex.getMessage());
+                    ed.setVisible(true);
+                }
+            } else if (jLabel2.getText().startsWith("/docs")) {
+                try {
+                    if (jLabel2.getText().equals("/docs")) {
+                        SaveStructureDialog sd = new SaveStructureDialog(getFrame(), false, 1, docs, picasa, this.usernamePicasa, "docs");
+                        sd.setVisible(true);
+                    } else {
+                        SaveStructureDialog sd = new SaveStructureDialog(getFrame(), false, 1, docs, picasa, this.usernamePicasa, this.currentGFolder);
+                        sd.setVisible(true);
+                    }
+                } catch (Exception ex) {
+                    ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on GDocs to file", ex.getMessage());
+                    ed.setVisible(true);
+                }
+            } else {
+                dir = jLabel2.getText();
+                SaveStructureDialog sd = new SaveStructureDialog(getFrame(), false, 0, docs, picasa, this.usernamePicasa, dir);
+                sd.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_copyListToFile
 
     public void googleInit() {
         FileInputStream fis = null;
@@ -1115,6 +1229,8 @@ public class FigooView extends FrameView {
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton16;
+    private javax.swing.JButton jButton17;
+    private javax.swing.JButton jButton18;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -1154,6 +1270,7 @@ public class FigooView extends FrameView {
     private JDialog aboutBox;
     private String currentGFolder;
     private JList active;
+    private String lastPicasaId;
     /**
      *
      */
@@ -1210,7 +1327,7 @@ public class FigooView extends FrameView {
             } else {
                 to = jLabel1.getText();
             }
-            ArchiveFileDialog dd = new ArchiveFileDialog(this,this.getFrame(), true, from, to);
+            ArchiveFileDialog dd = new ArchiveFileDialog(this, this.getFrame(), true, from, to);
             dd.setVisible(true);
         }
     }
@@ -1790,8 +1907,6 @@ public class FigooView extends FrameView {
 
             if (titles != null && ids != null) {
 
-                System.out.println("P1 " + titles.size());
-                System.out.println("P2 " + ids.size());
                 Vector pole = new Vector();
                 Vector pole2 = new Vector();
 
@@ -2043,6 +2158,7 @@ public class FigooView extends FrameView {
             ArrayList<String> ids = FigooPicasaClient.listPicasaAlbumID(picasa, id, this.usernamePicasa);
             String albumName = FigooPicasaClient.getAlbumNameByID(picasa, id, this.usernamePicasa);
 
+            this.lastPicasaId = id;
             jButton11.setEnabled(false);
             jList2 = new JList();
             jList2.setName("0");

@@ -12,8 +12,8 @@ package figoo;
 
 import com.google.gdata.client.photos.PicasawebService;
 import com.google.gdata.util.ServiceException;
-import figoo.fileManager.DownloadAlbumPicasaTask;
-import figoo.google.FigooPicasaClient;
+import figoo.tasks.DownloadAlbumPicasaTask;
+import figoo.fileManager.FigooPicasaClient;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;

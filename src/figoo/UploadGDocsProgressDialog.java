@@ -10,7 +10,7 @@
  */
 package figoo;
 
-import figoo.fileManager.UploadGDocsTask;
+import figoo.tasks.UploadGDocsTask;
 import com.google.gdata.client.docs.DocsService;
 import java.awt.Dimension;
 import java.awt.Frame;

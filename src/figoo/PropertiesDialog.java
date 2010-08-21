@@ -25,6 +25,8 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -100,7 +102,7 @@ public class PropertiesDialog extends javax.swing.JDialog {
             showExif(fi);
         }
 
-        if (fi.getType().contains("mp3") || fi.getType().contains("m4a") || fi.getType().contains("flac")|| fi.getType().contains("ogg")) {
+        if (fi.getType().contains("mp3") || fi.getType().contains("m4a") || fi.getType().contains("flac") || fi.getType().contains("ogg")) {
             jLabel17.setText("ID3 Tags");
             showID3(fi);
         }
@@ -142,6 +144,13 @@ public class PropertiesDialog extends javax.swing.JDialog {
         jTextField1 = new javax.swing.JTextField();
         jTextField2 = new javax.swing.JTextField();
         jLabel16 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jTextField3 = new javax.swing.JTextField();
+        jButton2 = new javax.swing.JButton();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        jLabel21 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
@@ -243,6 +252,41 @@ public class PropertiesDialog extends javax.swing.JDialog {
         jLabel16.setText(resourceMap.getString("jLabel16.text")); // NOI18N
         jLabel16.setName("jLabel16"); // NOI18N
 
+        jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
+        jButton1.setName("jButton1"); // NOI18N
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkFromClipboard(evt);
+            }
+        });
+
+        jTextField3.setText(resourceMap.getString("jTextField3.text")); // NOI18N
+        jTextField3.setToolTipText(resourceMap.getString("jTextField3.toolTipText")); // NOI18N
+        jTextField3.setName("jTextField3"); // NOI18N
+
+        jButton2.setText(resourceMap.getString("jButton2.text")); // NOI18N
+        jButton2.setName("jButton2"); // NOI18N
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chechHash(evt);
+            }
+        });
+
+        jLabel18.setFont(resourceMap.getFont("jLabel18.font")); // NOI18N
+        jLabel18.setText(resourceMap.getString("jLabel18.text")); // NOI18N
+        jLabel18.setName("jLabel18"); // NOI18N
+
+        jLabel19.setFont(resourceMap.getFont("jLabel19.font")); // NOI18N
+        jLabel19.setText(resourceMap.getString("jLabel19.text")); // NOI18N
+        jLabel19.setName("jLabel19"); // NOI18N
+
+        jLabel20.setIcon(resourceMap.getIcon("jLabel20.icon")); // NOI18N
+        jLabel20.setText(resourceMap.getString("jLabel20.text")); // NOI18N
+        jLabel20.setName("jLabel20"); // NOI18N
+
+        jLabel21.setIcon(resourceMap.getIcon("jLabel21.icon")); // NOI18N
+        jLabel21.setName("jLabel21"); // NOI18N
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -298,7 +342,20 @@ public class PropertiesDialog extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 349, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 360, Short.MAX_VALUE)))
+                        .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 360, Short.MAX_VALUE))
+                    .addComponent(jButton1)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton2))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel20))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel19)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel21)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -349,7 +406,21 @@ public class PropertiesDialog extends javax.swing.JDialog {
                 .addComponent(jLabel16)
                 .addGap(8, 8, 8)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(229, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jButton1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel18)
+                    .addComponent(jLabel20))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel19)
+                    .addComponent(jLabel21))
+                .addContainerGap(105, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(resourceMap.getString("jPanel2.TabConstraints.tabTitle"), jPanel2); // NOI18N
@@ -432,7 +503,7 @@ public class PropertiesDialog extends javax.swing.JDialog {
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel17)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 513, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -503,10 +574,64 @@ public class PropertiesDialog extends javax.swing.JDialog {
         // TODO add your handling code here:
         this.setVisible(false);
     }//GEN-LAST:event_hideInfo
+
+    private void chechHash(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chechHash
+
+        String hash = jTextField3.getText();
+        hash = hash.trim();
+        if (hash.length() > 0) {
+            org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(PropertiesDialog.class);
+            String md5 = jTextField1.getText();
+            String sha1 = jTextField2.getText();
+            if (md5.equals(hash)) {
+                jLabel20.setIcon(resourceMap.getIcon("jLabel20.iconCorrect"));
+            } else {
+                jLabel20.setIcon(resourceMap.getIcon("jLabel20.iconIncorrect"));
+            }
+            if (sha1.equals(hash)) {
+                jLabel21.setIcon(resourceMap.getIcon("jLabel20.iconCorrect"));
+            } else {
+                jLabel21.setIcon(resourceMap.getIcon("jLabel20.iconIncorrect"));
+            }
+        }
+
+
+    }//GEN-LAST:event_chechHash
+
+    private void checkFromClipboard(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkFromClipboard
+
+        Transferable trans = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+        try {
+            if (trans != null && trans.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                String hash = (String) trans.getTransferData(DataFlavor.stringFlavor);
+                hash = hash.trim();
+                if (hash.length() > 0) {
+                    jTextField3.setText(hash);
+                    org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getResourceMap(PropertiesDialog.class);
+                    String md5 = jTextField1.getText();
+                    String sha1 = jTextField2.getText();
+                    if (md5.equals(hash)) {
+                        jLabel20.setIcon(resourceMap.getIcon("jLabel20.iconCorrect"));
+                    } else {
+                        jLabel20.setIcon(resourceMap.getIcon("jLabel20.iconIncorrect"));
+                    }
+                    if (sha1.equals(hash)) {
+                        jLabel21.setIcon(resourceMap.getIcon("jLabel20.iconCorrect"));
+                    } else {
+                        jLabel21.setIcon(resourceMap.getIcon("jLabel20.iconIncorrect"));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+               Toolkit.getDefaultToolkit().beep();
+        }
+    }//GEN-LAST:event_checkFromClipboard
     /**
      * @param args the command line arguments
      */
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBox2;
@@ -520,7 +645,11 @@ public class PropertiesDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -542,6 +671,7 @@ public class PropertiesDialog extends javax.swing.JDialog {
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextField3;
     // End of variables declaration//GEN-END:variables
 
     private void doPdfThumbmail(FileInfo fi) {
@@ -662,7 +792,7 @@ public class PropertiesDialog extends javax.swing.JDialog {
             jScrollPane3.setViewportView(jTable1);
 
         } catch (Exception ex) {
-           ex.printStackTrace();
-        } 
+            ex.printStackTrace();
+        }
     }
 }

@@ -11,7 +11,7 @@
 package figoo;
 
 import com.google.gdata.client.docs.DocsService;
-import figoo.fileManager.RemoveGDocsFileTask;
+import figoo.tasks.RemoveGDocsFileTask;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
