@@ -13,8 +13,10 @@ import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
 import com.google.gdata.util.ServiceException;
 import com.mortennobel.imagescaling.ResampleOp;
+import figoo.CombineFileDialog;
 import figoo.ErrorDialog;
 import figoo.FigooView;
+import figoo.SplitFileDialog;
 import figoo.classes.FileInfo;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
@@ -589,7 +591,6 @@ public class FileManager {
         return sb.toString();
     }
 
-
     /**
      * Returns structure of files and directories with recursive search.
      * @param dir where to start searching
@@ -604,26 +605,134 @@ public class FileManager {
         if (depth >= 0) {
             File directory = new File(dir);
             File[] files = directory.listFiles();
-            if(include){
-            sb.append(indention+"<" + directory.getAbsolutePath()+">" + System.getProperty("line.separator"));
+            if (include) {
+                sb.append(indention + "<" + directory.getAbsolutePath() + ">" + System.getProperty("line.separator"));
             }
-            indention = indention+"  ";
+            indention = indention + "  ";
             int newDepth = depth - 1;
             for (int i = 0; i < files.length; i++) {
                 if (!files[i].isHidden()) {
                     if (files[i].isDirectory()) {
-                        sb.append(indention+"<" + files[i].getName() + ">");
+                        sb.append(indention + "<" + files[i].getName() + ">");
                         sb.append(System.getProperty("line.separator"));
                         String s = FileManager.structureToString(files[i].getAbsolutePath(), newDepth, indention, false);
                         sb.append(s);
                     } else {
                         sb.append(indention + files[i].getName());
                         sb.append(System.getProperty("line.separator"));
-                    }      
+                    }
                 }
             }
         }
-       return sb.toString();
+        return sb.toString();
+    }
+
+    /**
+     * Splits file into smaller files
+     * @param splitSize part size in bytes
+     * @param sourceFile file to split
+     * @param targetDirectory where to save new parts
+     * @param cd 
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static void splitFile(int splitSize, File sourceFile, String targetDirectory, SplitFileDialog cd) throws FileNotFoundException, IOException {
+
+        InputStream inputStream = new FileInputStream(sourceFile);
+        long fileSize = sourceFile.length();
+        int actu = 1;
+        long left = fileSize;
+        while (left > 0) {
+            String att = "";
+            if (actu < 10) {
+                att = "00" + actu;
+            } else if (actu > 9 && actu < 100) {
+                att = "0" + actu;
+            } else if (actu > 99) {
+                att = actu + "";
+            }
+
+            File ff = new File(targetDirectory + System.getProperty("file.separator") + sourceFile.getName() + "." + att);
+            cd.getjLabel5().setText(ff.getName());
+            if (!ff.exists()) {
+                ff.createNewFile();
+            }
+            OutputStream out = new FileOutputStream(ff);
+            byte[] buf = new byte[10000000];
+            if (splitSize < 10000000) {
+                buf = new byte[splitSize];
+            }
+            int len;
+            long smallleft = splitSize;
+            while (smallleft > 0 && (len = inputStream.read(buf)) != -1) {
+                smallleft = smallleft - buf.length;
+                out.write(buf, 0, len);
+            }
+            out.flush();
+            out.close();
+            actu = actu + 1;
+            left = left - splitSize;
+        }
+        inputStream.close();
+    }
+
+    /**
+     * Combines parts into one file
+     * @param firstPart first part to combine (i.e. 001])
+     * @param targetDirectory where to save combined file
+     * @param cd
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static void combineFile(String firstPart, String targetDirectory, CombineFileDialog cd) throws FileNotFoundException, IOException {
+        File part = new File(firstPart);
+        String nextFileName = firstPart;
+        File[] files = part.getParentFile().listFiles();
+        String dir = part.getParent();
+        ArrayList<String> list = new ArrayList<String>();
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].isFile()) {
+                list.add(files[i].getAbsolutePath());
+            }
+        }
+        boolean nextPart = true;
+        String name2 = part.getName();
+        String name = name2.substring(0,name2.lastIndexOf("."));
+        File combinedFile = new File(targetDirectory + System.getProperty("file.separator") + name);
+        combinedFile.createNewFile();
+        OutputStream out = new FileOutputStream(combinedFile);
+        InputStream inputStream;
+        int len = 0;
+        int nextPartNumber = 1;
+        while (nextPart) {
+            part = new File(nextFileName);
+            cd.getjLabel2().setText(part.getName());
+            inputStream = new FileInputStream(part);
+            byte[] buf = new byte[5000000];
+            while ((len = inputStream.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+            out.flush();
+            inputStream.close();
+
+            String att = "";
+            nextPartNumber = nextPartNumber + 1;
+            if (nextPartNumber < 10) {
+                att = "00" + nextPartNumber;
+            } else if (nextPartNumber > 9 && nextPartNumber < 100) {
+                att = "0" + nextPartNumber;
+            } else if (nextPartNumber > 99) {
+                att = nextPartNumber + "";
+            }
+            nextFileName = dir + System.getProperty("file.separator") + name + "." + att;
+            if (list.contains(nextFileName)) {
+                nextPart = true;
+                list.remove(nextFileName);
+            } else {
+                nextPart = false;
+            }
+        }
+        out.close();
     }
 }
 

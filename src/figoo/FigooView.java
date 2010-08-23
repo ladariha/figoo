@@ -390,7 +390,6 @@ public class FigooView extends FrameView {
                 listDirectory((String) cb.getSelectedItem(), jList1, 1);
             }
         } else {
-
             for (int i = 0; i < cb.getItemCount(); i++) {
                 if (!jLabel2.getText().equalsIgnoreCase("/picasa") && jLabel2.getText().startsWith((String) cb.getItemAt(i))) {
                     session.setRootR(jLabel2.getText(), i);
@@ -457,6 +456,8 @@ public class FigooView extends FrameView {
         jButton16 = new javax.swing.JButton();
         jButton17 = new javax.swing.JButton();
         jButton18 = new javax.swing.JButton();
+        jButton19 = new javax.swing.JButton();
+        jButton20 = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jPanel17 = new javax.swing.JPanel();
@@ -479,6 +480,11 @@ public class FigooView extends FrameView {
         jList2 = new javax.swing.JList();
         menuBar = new javax.swing.JMenuBar();
         javax.swing.JMenu fileMenu = new javax.swing.JMenu();
+        jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
         javax.swing.JMenuItem exitMenuItem = new javax.swing.JMenuItem();
         javax.swing.JMenu helpMenu = new javax.swing.JMenu();
         javax.swing.JMenuItem aboutMenuItem = new javax.swing.JMenuItem();
@@ -681,7 +687,6 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton11);
 
-        jButton12.setBackground(resourceMap.getColor("jButton12.background")); // NOI18N
         jButton12.setIcon(resourceMap.getIcon("jButton12.icon")); // NOI18N
         jButton12.setToolTipText(resourceMap.getString("jButton12.toolTipText")); // NOI18N
         jButton12.setMaximumSize(new java.awt.Dimension(34, 34));
@@ -695,7 +700,6 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton12);
 
-        jButton13.setBackground(resourceMap.getColor("jButton13.background")); // NOI18N
         jButton13.setIcon(resourceMap.getIcon("jButton13.icon")); // NOI18N
         jButton13.setToolTipText(resourceMap.getString("jButton13.toolTipText")); // NOI18N
         jButton13.setMaximumSize(new java.awt.Dimension(34, 34));
@@ -709,7 +713,6 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton13);
 
-        jButton15.setBackground(resourceMap.getColor("jButton15.background")); // NOI18N
         jButton15.setIcon(resourceMap.getIcon("jButton15.icon")); // NOI18N
         jButton15.setToolTipText(resourceMap.getString("jButton15.toolTipText")); // NOI18N
         jButton15.setMaximumSize(new java.awt.Dimension(34, 34));
@@ -723,7 +726,6 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton15);
 
-        jButton16.setBackground(resourceMap.getColor("jButton16.background")); // NOI18N
         jButton16.setIcon(resourceMap.getIcon("jButton16.icon")); // NOI18N
         jButton16.setToolTipText(resourceMap.getString("jButton16.toolTipText")); // NOI18N
         jButton16.setMaximumSize(new java.awt.Dimension(34, 34));
@@ -737,7 +739,6 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton16);
 
-        jButton17.setBackground(resourceMap.getColor("jButton17.background")); // NOI18N
         jButton17.setIcon(resourceMap.getIcon("jButton17.icon")); // NOI18N
         jButton17.setToolTipText(resourceMap.getString("jButton17.toolTipText")); // NOI18N
         jButton17.setMaximumSize(new java.awt.Dimension(34, 34));
@@ -751,7 +752,6 @@ public class FigooView extends FrameView {
         });
         jPanel8.add(jButton17);
 
-        jButton18.setBackground(resourceMap.getColor("jButton18.background")); // NOI18N
         jButton18.setIcon(resourceMap.getIcon("jButton18.icon")); // NOI18N
         jButton18.setToolTipText(resourceMap.getString("jButton18.toolTipText")); // NOI18N
         jButton18.setMaximumSize(new java.awt.Dimension(34, 34));
@@ -764,6 +764,32 @@ public class FigooView extends FrameView {
             }
         });
         jPanel8.add(jButton18);
+
+        jButton19.setIcon(resourceMap.getIcon("jButton19.icon")); // NOI18N
+        jButton19.setToolTipText(resourceMap.getString("jButton19.toolTipText")); // NOI18N
+        jButton19.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton19.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton19.setName("jButton19"); // NOI18N
+        jButton19.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton19.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                splitFile(evt);
+            }
+        });
+        jPanel8.add(jButton19);
+
+        jButton20.setIcon(resourceMap.getIcon("jButton20.icon")); // NOI18N
+        jButton20.setToolTipText(resourceMap.getString("jButton20.toolTipText")); // NOI18N
+        jButton20.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton20.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton20.setName("jButton20"); // NOI18N
+        jButton20.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton20.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton20splitFile(evt);
+            }
+        });
+        jPanel8.add(jButton20);
 
         jPanel2.add(jPanel8);
 
@@ -951,6 +977,44 @@ public class FigooView extends FrameView {
 
         fileMenu.setText(resourceMap.getString("fileMenu.text")); // NOI18N
         fileMenu.setName("fileMenu"); // NOI18N
+
+        jMenuItem2.setIcon(resourceMap.getIcon("jMenuItem2.icon")); // NOI18N
+        jMenuItem2.setText(resourceMap.getString("jMenuItem2.text")); // NOI18N
+        jMenuItem2.setName("jMenuItem2"); // NOI18N
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuCopyClipboard(evt);
+            }
+        });
+        fileMenu.add(jMenuItem2);
+
+        jMenuItem3.setIcon(resourceMap.getIcon("jMenuItem3.icon")); // NOI18N
+        jMenuItem3.setText(resourceMap.getString("jMenuItem3.text")); // NOI18N
+        jMenuItem3.setName("jMenuItem3"); // NOI18N
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveListFile(evt);
+            }
+        });
+        fileMenu.add(jMenuItem3);
+
+        jMenuItem4.setIcon(resourceMap.getIcon("jMenuItem4.icon")); // NOI18N
+        jMenuItem4.setText(resourceMap.getString("jMenuItem4.text")); // NOI18N
+        jMenuItem4.setName("jMenuItem4"); // NOI18N
+        fileMenu.add(jMenuItem4);
+
+        jMenuItem1.setIcon(resourceMap.getIcon("jMenuItem1.icon")); // NOI18N
+        jMenuItem1.setText(resourceMap.getString("jMenuItem1.text")); // NOI18N
+        jMenuItem1.setName("jMenuItem1"); // NOI18N
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                splitFile(evt);
+            }
+        });
+        fileMenu.add(jMenuItem1);
+
+        jSeparator1.setName("jSeparator1"); // NOI18N
+        fileMenu.add(jSeparator1);
 
         javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getActionMap(FigooView.class, this);
         exitMenuItem.setAction(actionMap.get("quit")); // NOI18N
@@ -1191,6 +1255,55 @@ public class FigooView extends FrameView {
         }
     }//GEN-LAST:event_copyListToFile
 
+    private void menuCopyClipboard(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCopyClipboard
+        copyListToClipboard(null);
+    }//GEN-LAST:event_menuCopyClipboard
+
+    private void saveListFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveListFile
+        copyListToFile(null);        // TODO add your handling code here:
+    }//GEN-LAST:event_saveListFile
+
+    private void splitFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_splitFile
+        if (active != null) {
+            if (!jLabel2.getText().startsWith("/docs") && !jLabel2.getText().startsWith("/picasa")) {
+                JPanel panel = (JPanel) active.getSelectedValue();
+                File file = new File(panel.getName());
+                if (file.isFile()) {
+                    if (active.getName().equals("1")) {
+                        SplitFileDialog sd = new SplitFileDialog(this.getFrame(), false, file, jLabel2.getText(), this);
+                        sd.setVisible(true);
+                    } else {
+                        SplitFileDialog sd = new SplitFileDialog(this.getFrame(), false, file, jLabel1.getText(), this);
+                        sd.setVisible(true);
+                    }
+                }
+            }
+        }
+    }//GEN-LAST:event_splitFile
+
+    private void jButton20splitFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton20splitFile
+
+        if (active != null) {
+            if (!jLabel2.getText().startsWith("/docs") && !jLabel2.getText().startsWith("/picasa")) {
+                JPanel panel = (JPanel) active.getSelectedValue();
+                File file = new File(panel.getName());
+                if (file.isFile()) {
+                    if (file.getName().endsWith(".001")) {
+                        if (active.getName().equals("1")) {
+                            CombineFileDialog sd = new CombineFileDialog(this.getFrame(), false, file.getAbsolutePath(), jLabel2.getText(), this);
+                            sd.setVisible(true);
+                        } else {
+                            CombineFileDialog sd = new CombineFileDialog(this.getFrame(), false, file.getAbsolutePath(), jLabel1.getText(), this);
+                            sd.setVisible(true);
+                        }
+                    } else {
+                        Toolkit.getDefaultToolkit().beep();
+                    }
+                }
+            }
+        }
+    }//GEN-LAST:event_jButton20splitFile
+
     public void googleInit() {
         FileInputStream fis = null;
         try {
@@ -1231,7 +1344,9 @@ public class FigooView extends FrameView {
     private javax.swing.JButton jButton16;
     private javax.swing.JButton jButton17;
     private javax.swing.JButton jButton18;
+    private javax.swing.JButton jButton19;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton20;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
@@ -1243,6 +1358,10 @@ public class FigooView extends FrameView {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JList jList1;
     private javax.swing.JList jList2;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
@@ -1263,6 +1382,7 @@ public class FigooView extends FrameView {
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JPanel statusPanel;
