@@ -1,6 +1,10 @@
 #labels Featured
 = Changelog =
 
+=== v2.5.0 - August 23, 2010 ===
+ * Split/Merge files
+ * UI improvements
+
 === v2.4.0 - August 21, 2010 ===
  * Checking hash using clipboard or manually (in file properties)
  * Structure function (for Picasa, Google Documents and local file system)
