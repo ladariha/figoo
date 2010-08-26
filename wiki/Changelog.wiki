@@ -1,6 +1,9 @@
 #labels Featured
 = Changelog =
 
+=== v2.5.5 - August 26, 2010 ===
+ * Batch rename and copy function
+
 === v2.5.0 - August 23, 2010 ===
  * Split/Merge files
  * UI improvements
