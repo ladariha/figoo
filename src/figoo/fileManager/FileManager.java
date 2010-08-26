@@ -13,7 +13,6 @@ import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
 import com.google.gdata.util.ServiceException;
 import com.mortennobel.imagescaling.ResampleOp;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.RegularExpression;
 import figoo.CombineFileDialog;
 import figoo.ErrorDialog;
 import figoo.FigooView;
