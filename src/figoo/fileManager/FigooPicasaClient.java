@@ -13,7 +13,6 @@ import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import figoo.classes.AlbumInfo;
 import figoo.classes.PhotoInfo;
-import figoo.fileManager.FileManager;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;

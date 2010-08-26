@@ -484,6 +484,7 @@ public class FigooView extends FrameView {
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem5 = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         javax.swing.JMenuItem exitMenuItem = new javax.swing.JMenuItem();
         javax.swing.JMenu helpMenu = new javax.swing.JMenu();
@@ -1013,11 +1014,22 @@ public class FigooView extends FrameView {
         });
         fileMenu.add(jMenuItem1);
 
+        jMenuItem5.setIcon(resourceMap.getIcon("jMenuItem5.icon")); // NOI18N
+        jMenuItem5.setText(resourceMap.getString("jMenuItem5.text")); // NOI18N
+        jMenuItem5.setName("jMenuItem5"); // NOI18N
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showBatchDialog(evt);
+            }
+        });
+        fileMenu.add(jMenuItem5);
+
         jSeparator1.setName("jSeparator1"); // NOI18N
         fileMenu.add(jSeparator1);
 
         javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(figoo.FigooApp.class).getContext().getActionMap(FigooView.class, this);
         exitMenuItem.setAction(actionMap.get("quit")); // NOI18N
+        exitMenuItem.setIcon(resourceMap.getIcon("exitMenuItem.icon")); // NOI18N
         exitMenuItem.setName("exitMenuItem"); // NOI18N
         fileMenu.add(exitMenuItem);
 
@@ -1027,6 +1039,7 @@ public class FigooView extends FrameView {
         helpMenu.setName("helpMenu"); // NOI18N
 
         aboutMenuItem.setAction(actionMap.get("showAboutBox")); // NOI18N
+        aboutMenuItem.setIcon(resourceMap.getIcon("aboutMenuItem.icon")); // NOI18N
         aboutMenuItem.setName("aboutMenuItem"); // NOI18N
         helpMenu.add(aboutMenuItem);
 
@@ -1304,6 +1317,14 @@ public class FigooView extends FrameView {
         }
     }//GEN-LAST:event_jButton20splitFile
 
+    private void showBatchDialog(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showBatchDialog
+
+        BatchRenameDialog bd  = new BatchRenameDialog(this.getFrame(), false,this);
+        bd.setVisible(true);
+
+
+    }//GEN-LAST:event_showBatchDialog
+
     public void googleInit() {
         FileInputStream fis = null;
         try {
@@ -1362,6 +1383,7 @@ public class FigooView extends FrameView {
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;

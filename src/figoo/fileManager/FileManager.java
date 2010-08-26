@@ -13,6 +13,7 @@ import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
 import com.google.gdata.util.ServiceException;
 import com.mortennobel.imagescaling.ResampleOp;
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.RegularExpression;
 import figoo.CombineFileDialog;
 import figoo.ErrorDialog;
 import figoo.FigooView;
@@ -30,6 +31,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,6 +47,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.DefaultListModel;
 
 /**
  *
@@ -56,6 +59,8 @@ public class FileManager {
     private static int width;
     private static int folders = 0;
     private static int files = 0;
+    private static String[] alphabet = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
+    private static String[] ALPHABET = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
     /**
      * Renames file
@@ -697,7 +702,7 @@ public class FileManager {
         }
         boolean nextPart = true;
         String name2 = part.getName();
-        String name = name2.substring(0,name2.lastIndexOf("."));
+        String name = name2.substring(0, name2.lastIndexOf("."));
         File combinedFile = new File(targetDirectory + System.getProperty("file.separator") + name);
         combinedFile.createNewFile();
         OutputStream out = new FileOutputStream(combinedFile);
@@ -733,6 +738,241 @@ public class FileManager {
             }
         }
         out.close();
+    }
+
+        /**
+     * Rename and copy multiple files
+     * @param dir where to copy new named files
+     * @param model list of files to be renamed
+     * @param pattern name pattern
+     * @return report info
+     */
+    public static String batchRenameKeepSuffix(File dir, DefaultListModel model, String pattern) {
+        int alphabetCounter = 0;
+        String newname = "";
+        String name = "";
+        String suffix = "";
+        StringBuffer sb = new StringBuffer();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        sb.append("BATCH RENAME INFO");
+        sb.append(System.getProperty("line.separator"));
+        int errors = 0;
+        for (int i = 0; i < model.size(); i++) {
+            File old = new File((String) model.get(i));
+
+            if (alphabetCounter > alphabet.length) {
+                sb.append((i + 1) + ") ==ERROR== File " + old.getAbsolutePath() + " was not renamed because number of files (" + model.size() + ") is greater than number of letters ( " + ALPHABET.length + "}");
+                errors++;
+                sb.append(System.getProperty("line.separator"));
+            } else {
+                try {
+                    name = old.getName();
+                    suffix = name.substring(name.lastIndexOf("."));
+                    name  =  name.substring(0, name.lastIndexOf("."));
+
+                    newname = pattern.replaceAll("&N", name);
+                    if (pattern.contains(">") || pattern.contains("<")) {
+                        newname = newname.replaceAll("<", alphabet[alphabetCounter]);
+                        newname = newname.replaceAll(">", ALPHABET[alphabetCounter]);
+                        alphabetCounter++;
+                    }
+
+                    newname = newname.replaceAll("#", i + "");
+                    File newFile = new File(dir+System.getProperty("file.separator")+newname+suffix);
+                    if (newFile.exists()) {
+                        throw new Exception("Target file already exists ");
+                    } else {
+                        newFile.createNewFile();
+                    }
+
+                    FileChannel source = null;
+                    FileChannel destination = null;
+                    try {
+                        source = new FileInputStream(old).getChannel();
+                        destination = new FileOutputStream(newFile).getChannel();
+                        destination.transferFrom(source, 0, source.size());
+                    } finally {
+                        if (source != null) {
+                            source.close();
+                        }
+                        if (destination != null) {
+                            destination.close();
+                        }
+                        sb.append((i + 1) + ") File " + old.getAbsolutePath() + " was renamed to " + newFile.getAbsolutePath());
+                        sb.append(System.getProperty("line.separator"));
+                    }
+                } catch (Exception a) {
+                    sb.append((i + 1) + ") ==ERROR== File " + old.getAbsolutePath() + " was not renamed because: " + a.getMessage() + " >> " + a.toString());
+                    errors++;
+                    sb.append(System.getProperty("line.separator"));
+                }
+            }
+        }
+        sb.append(System.getProperty("line.separator"));
+        sb.append("SUMMARY ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Files renamed: " + (model.size() - errors));
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Files NOT renamed: " + errors);
+        return sb.toString();
+    }
+
+    /**
+     * Rename and copy multiple files
+     * @param dir where to copy new named files
+     * @param model list of files to be renamed
+     * @param pattern name pattern 
+     * @return report info
+     */
+    public static String batchRenameRemoveSuffix(File dir, DefaultListModel model, String pattern) {
+        int alphabetCounter = 0;
+        String newname = "";
+        String name = "";
+        StringBuffer sb = new StringBuffer();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        sb.append("BATCH RENAME INFO");
+        sb.append(System.getProperty("line.separator"));
+        int errors = 0;
+        for (int i = 0; i < model.size(); i++) {
+            File old = new File((String) model.get(i));
+
+            if (alphabetCounter > alphabet.length) {
+                sb.append((i + 1) + ") ==ERROR== File " + old.getAbsolutePath() + " was not renamed because number of files (" + model.size() + ") is greater than number of letters ( " + ALPHABET.length + "}");
+                errors++;
+                sb.append(System.getProperty("line.separator"));
+            } else {
+                try {
+                    name = old.getName();
+                    name  =  name.substring(0, name.lastIndexOf("."));
+
+                    newname = pattern.replaceAll("&N", name);
+                    if (pattern.contains(">") || pattern.contains("<")) {
+                        newname = newname.replaceAll("<", alphabet[alphabetCounter]);
+                        newname = newname.replaceAll(">", ALPHABET[alphabetCounter]);
+                        alphabetCounter++;
+                    }
+
+                    newname = newname.replaceAll("#", i + "");
+                    File newFile = new File(dir+System.getProperty("file.separator")+newname);
+                    if (newFile.exists()) {
+                        throw new Exception("Target file already exists ");
+                    } else {
+                        newFile.createNewFile();
+                    }
+
+                    FileChannel source = null;
+                    FileChannel destination = null;
+                    try {
+                        source = new FileInputStream(old).getChannel();
+                        destination = new FileOutputStream(newFile).getChannel();
+                        destination.transferFrom(source, 0, source.size());
+                    } finally {
+                        if (source != null) {
+                            source.close();
+                        }
+                        if (destination != null) {
+                            destination.close();
+                        }
+                        sb.append((i + 1) + ") File " + old.getAbsolutePath() + " was renamed to " + newFile.getAbsolutePath());
+                        sb.append(System.getProperty("line.separator"));
+                    }
+                } catch (Exception a) {
+                    sb.append((i + 1) + ") ==ERROR== File " + old.getAbsolutePath() + " was not renamed because: " + a.getMessage() + " >> " + a.toString());
+                    errors++;
+                    sb.append(System.getProperty("line.separator"));
+                }
+            }
+        }
+        sb.append(System.getProperty("line.separator"));
+        sb.append("SUMMARY ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Files renamed: " + (model.size() - errors));
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Files NOT renamed: " + errors);
+        return sb.toString();
+    }
+
+    /**
+     * Rename and copy multiple files
+     * @param dir where to copy new named files
+     * @param model list of files to be renamed
+     * @param pattern name pattern
+     * @param suffix change original suffix to
+     * @return report info
+     */
+        public static String batchRenameChangeSuffix(File dir, DefaultListModel model, String pattern, String suffix) {
+        int alphabetCounter = 0;
+        String newname = "";
+        String name = "";
+
+        StringBuffer sb = new StringBuffer();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        sb.append("BATCH RENAME INFO");
+        sb.append(System.getProperty("line.separator"));
+        int errors = 0;
+        for (int i = 0; i < model.size(); i++) {
+            File old = new File((String) model.get(i));
+
+            if (alphabetCounter > alphabet.length) {
+                sb.append((i + 1) + ") ==ERROR== File " + old.getAbsolutePath() + " was not renamed because number of files (" + model.size() + ") is greater than number of letters ( " + ALPHABET.length + "}");
+                errors++;
+                sb.append(System.getProperty("line.separator"));
+            } else {
+                try {
+                    name = old.getName();
+                    name  =  name.substring(0, name.lastIndexOf("."));
+
+                    newname = pattern.replaceAll("&N", name);
+                    if (pattern.contains(">") || pattern.contains("<")) {
+                        newname = newname.replaceAll("<", alphabet[alphabetCounter]);
+                        newname = newname.replaceAll(">", ALPHABET[alphabetCounter]);
+                        alphabetCounter++;
+                    }
+
+                    newname = newname.replaceAll("#", i + "");
+                    File newFile = new File(dir+System.getProperty("file.separator")+newname+"."+suffix);
+                    if (newFile.exists()) {
+                        throw new Exception("Target file already exists ");
+                    } else {
+                        newFile.createNewFile();
+                    }
+
+                    FileChannel source = null;
+                    FileChannel destination = null;
+                    try {
+                        source = new FileInputStream(old).getChannel();
+                        destination = new FileOutputStream(newFile).getChannel();
+                        destination.transferFrom(source, 0, source.size());
+                    } finally {
+                        if (source != null) {
+                            source.close();
+                        }
+                        if (destination != null) {
+                            destination.close();
+                        }
+                        sb.append((i + 1) + ") File " + old.getAbsolutePath() + " was renamed to " + newFile.getAbsolutePath());
+                        sb.append(System.getProperty("line.separator"));
+                    }
+                } catch (Exception a) {
+                    sb.append((i + 1) + ") ==ERROR== File " + old.getAbsolutePath() + " was not renamed because: " + a.getMessage() + " >> " + a.toString());
+                    errors++;
+                    sb.append(System.getProperty("line.separator"));
+                }
+            }
+        }
+        sb.append(System.getProperty("line.separator"));
+        sb.append("SUMMARY ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Files renamed: " + (model.size() - errors));
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Files NOT renamed: " + errors);
+        return sb.toString();
     }
 }
 

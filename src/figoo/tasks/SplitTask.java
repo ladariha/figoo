@@ -1,5 +1,6 @@
 package figoo.tasks;
 
+import figoo.ErrorDialog;
 import figoo.SplitFileDialog;
 import figoo.fileManager.FileManager;
 import java.awt.Toolkit;
@@ -46,14 +47,15 @@ public class SplitTask extends SwingWorker<Void, Void> {
         try {
             splitFile();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            ErrorDialog ed = new ErrorDialog(new javax.swing.JFrame(), true, "Error on Split task", ex.getMessage());
+            ed.setVisible(true);
         }
         return null;
     }
 
     public void splitFile() throws IOException {
 
-        FileManager.splitFile(this.size,this.from, this.to, this.cd);
+        FileManager.splitFile(this.size, this.from, this.to, this.cd);
 
     }
 
