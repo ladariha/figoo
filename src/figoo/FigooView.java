@@ -458,6 +458,7 @@ public class FigooView extends FrameView {
         jButton18 = new javax.swing.JButton();
         jButton19 = new javax.swing.JButton();
         jButton20 = new javax.swing.JButton();
+        jButton21 = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jPanel17 = new javax.swing.JPanel();
@@ -791,6 +792,19 @@ public class FigooView extends FrameView {
             }
         });
         jPanel8.add(jButton20);
+
+        jButton21.setIcon(resourceMap.getIcon("jButton21.icon")); // NOI18N
+        jButton21.setToolTipText(resourceMap.getString("jButton21.toolTipText")); // NOI18N
+        jButton21.setMaximumSize(new java.awt.Dimension(34, 34));
+        jButton21.setMinimumSize(new java.awt.Dimension(34, 34));
+        jButton21.setName("jButton21"); // NOI18N
+        jButton21.setPreferredSize(new java.awt.Dimension(36, 36));
+        jButton21.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton21splitFile(evt);
+            }
+        });
+        jPanel8.add(jButton21);
 
         jPanel2.add(jPanel8);
 
@@ -1321,9 +1335,13 @@ public class FigooView extends FrameView {
 
         BatchRenameDialog bd  = new BatchRenameDialog(this.getFrame(), false,this);
         bd.setVisible(true);
-
-
     }//GEN-LAST:event_showBatchDialog
+
+    private void jButton21splitFile(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton21splitFile
+
+        M3uDialog mm = new M3uDialog(this.getFrame(), false, this);
+        mm.setVisible(true);
+    }//GEN-LAST:event_jButton21splitFile
 
     public void googleInit() {
         FileInputStream fis = null;
@@ -1368,6 +1386,7 @@ public class FigooView extends FrameView {
     private javax.swing.JButton jButton19;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton20;
+    private javax.swing.JButton jButton21;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;

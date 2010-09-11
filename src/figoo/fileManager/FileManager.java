@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -972,6 +973,22 @@ public class FileManager {
         sb.append(System.getProperty("line.separator"));
         sb.append("Files NOT renamed: " + errors);
         return sb.toString();
+    }
+
+        /**
+         * Saves string to file
+         * @param dir directory of the target file
+         * @param name file name
+         * @param textToSave text to save
+         * @throws IOException
+         */
+    public static void saveStringToFile(File dir, String name, String textToSave) throws IOException {
+        
+        File f = new File(dir+System.getProperty("file.separator")+name);
+        FileWriter fw = new FileWriter(f);
+        fw.write(textToSave);
+        fw.flush();
+        fw.close();
     }
 }
 
