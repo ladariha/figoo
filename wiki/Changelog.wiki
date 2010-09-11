@@ -1,6 +1,9 @@
 #labels Featured
 = Changelog =
 
+=== v2.6.0 - September 11, 2010 ===
+ * Function for creating M3U playlist from multiple directories
+
 === v2.5.5 - August 26, 2010 ===
  * Batch rename and copy function
 
